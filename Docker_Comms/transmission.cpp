@@ -17,7 +17,7 @@ std::vector<char> recieveAx25Packet(WiFiClient* client){
     while(true) {
       if (itCount > 500)
       {
-        Serial.println("Error in recieveAx25Packet No return FLAG found");
+        Serial.println("Error in recieveAx25Packet: No return FLAG found");
         std::vector<char> error;
         return error;
       }
@@ -52,8 +52,20 @@ std::vector<char> recieveAx25Packet(WiFiClient* client){
 
 
 int sendAx25Packet(WiFiClient* client, std::vector<char>& packet){
-  int bombo = 1;
-  return bombo;
+  
+  // check there is a FLAG on either side of the vector
+  if (packet[0] != FLAG || packet[packet.size()-1] != FLAG) {
+    Serial.println("Error in sendAx25Packet: Outgoing packet is incorrect format");
+    return 0;
+  }
+  else {
+    // send packet
+    for (const auto& val : packet) {
+      client->write(val);
+    }
+  }
+
+  return 1;
 }
 
 

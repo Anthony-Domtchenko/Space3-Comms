@@ -41,7 +41,7 @@ class RxAx25 {
 };
 
 
-// NOTE: need to add parameter that describes END OF TRANSMISSION data
+// NOTE: need to add parameter that describes END OF TRANSMISSION data (perhap empty data frame = EOT)
 // NOTE: need to add FCS implementation
 // NOTE: addresses are hard coded because we wont be sending to any other satellites but might change if time permits
 // Encodes byte data into AX.25 UI format to send to ground station (source address is always satellite)
@@ -50,9 +50,6 @@ class RxAx25 {
 // returns: ON SUCCESS: byte-stuffed ax25 packet
 //          ON FAILURE: empty vector
 std::vector<char> ax25encode(std::vector<char>& data, bool msgType);
-
-
-std::vector<char> stuffPacket(std::vector<char>& packet);
 
 
 #endif

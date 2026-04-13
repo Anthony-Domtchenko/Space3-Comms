@@ -52,94 +52,50 @@ void loop() {
     Serial.println("New Client Connected");
     while (client.connected()) {
       if (client.available()) {
-        //std::vector<char> data = getAx25Data(&client);
+        // Start by recieving the request packet from the ground station
         std::vector<char> packet = recieveAx25Packet(&client);
-        //std::vector<char> data(packet.begin() + 17, packet.end() - 3);
-        for (const auto& val : packet) {
-          int num = val; // this line is just so numbers are pritned in readable ascii
-          Serial.print(num);
-          Serial.print(" ");
-        }
-        Serial.print("\n");
-
         RxAx25 recievedPacket(packet);
 
+        // Print the recieved data
         Serial.print("Destination Address: ");
         for (const auto& val : recievedPacket.getDestAddr()) {
           Serial.print(val);
         }
         Serial.print("\n");
-
         Serial.print("Destination SSID: ");
         Serial.println(recievedPacket.getDestSSID());
-
         Serial.print("Source Address: ");
         for (const auto& val : recievedPacket.getSourAddr()) {
           Serial.print(val);
         }
         Serial.print("\n");
-
         Serial.print("Source SSID: ");
         Serial.println(recievedPacket.getSourSSID());
-
         Serial.print("Data: ");
         for (const auto& val : recievedPacket.getData()) {
           int num = val; // this line is just so numbers are pritned in readable ascii
           Serial.print(num);
         }
         Serial.print("\n");
-
         Serial.print("FCS: ");
         for (const auto& val : recievedPacket.getFcs()) {
           int num = val; // this line is just so numbers are pritned in readable ascii
           Serial.print(num);
         }
         Serial.print("\n");
+
+
+        // Send back a packet with information 'A B C 0x7E 0x7D'
+        std::vector<char> responseData = {'A', 'B', 'C', 0x7E, 0x7D};
+        std::vector<char> txPacket = ax25encode(responseData, true);
+        if (sendAx25Packet(&client, txPacket)) {
+          Serial.println("Tx Packet Sent!");
+        }
       }
     }
     client.stop(); // Close the connection
     Serial.println("Client Disconnected");
   }
-}
-
-
-std::vector<char> getAx25Data(WiFiClient* client) {
-  std::vector<char> rawData;
-  char byte = client->read();
-  char escapeFlag = 0;
-
-  // Check that packet reading is synchronise (first byte should be a flag)
-  if (byte == FLAG) {
-    // Make sure to append that first flag
-    rawData.push_back(byte);
-    while(true) {
-      char prevByte = byte;
-      byte = client->read();
-
-      if (escapeFlag == 0 && byte == ESCAPE) {
-        escapeFlag = 1;
-        continue;
-      }
-      else if (escapeFlag == 0 && byte == FLAG) {
-        rawData.push_back(byte);
-        break;
-      }
-      else if (escapeFlag == 1) {
-        rawData.push_back(byte);
-        escapeFlag = 0;
-      }
-      else {
-        // (escapeFlag == 0 && byte is something random)
-        rawData.push_back(byte);
-      }
-    }
-  }
-  else {
-    Serial.println("ERROR: Recieved packet is out of sync!!");
-  }
-  std::vector<char> data(rawData.begin() + 17, rawData.end() - 3);
-
-  return data;
 }
 
 
