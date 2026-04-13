@@ -100,6 +100,9 @@ std::vector<char> ax25encode(std::vector<char>& data, bool msgType) {
       encodedPacket.push_back(ESCAPE);
       encodedPacket.push_back(val);
     }
+    else {
+      encodedPacket.push_back(val);
+    }
   }
 
   // Add fcs

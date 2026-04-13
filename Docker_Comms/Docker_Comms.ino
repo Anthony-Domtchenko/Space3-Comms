@@ -85,15 +85,16 @@ void loop() {
         Serial.print("\n");
 
 
-        // Send back a packet with information 'A B C 0x7E 0x7D'
+        // Send back a packet with information 'A B C ~ }'
         std::vector<char> responseData = {'A', 'B', 'C', 0x7E, 0x7D};
         std::vector<char> txPacket = ax25encode(responseData, true);
         if (sendAx25Packet(&client, txPacket)) {
           Serial.println("Tx Packet Sent!");
+          client.stop();
         }
       }
     }
-    client.stop(); // Close the connection
+    //client.stop(); // Close the connection
     Serial.println("Client Disconnected");
   }
 }

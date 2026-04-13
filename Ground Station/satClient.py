@@ -41,6 +41,27 @@ class satClient:
         msg = ax25encode(request, msgType='wod')
         self.sock.sendall(msg)
 
+        packet = []
+        while True:
+            rxData = self.sock.recv(100)
+
+            if not rxData:
+                break
+
+            packet.append(rxData)
+
+        packet = b''.join(packet)
+
+        print("RAW DATA:", packet.hex(' '))
+        decodedPacket = ax25decode(packet)
+        if(decodedPacket):
+            print("DESTINATION ADDRESS:", decodedPacket.destAddr)
+            print("DESTINATION SSID:", decodedPacket.destSSID)
+            print("SOURCE ADDRESS:", decodedPacket.sourAddr)
+            print("SOURCE SSID:", decodedPacket.sourSSID)
+            print("INFORMATION FIELD:", decodedPacket.data.decode('utf-8'))
+            print("FCS:", decodedPacket.fcs.hex(' '))
+
     def closeClient(self):
         self.sock.close()
         print("satClient socket closed\n")

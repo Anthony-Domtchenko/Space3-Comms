@@ -54,6 +54,9 @@ def ax25encode(data, msgType: Literal["wod", "science"]):
 # Function breaks down an ax25 packet (byte type) into constituent parts
 # returns ax25 object with attributes containing the packets important information
 def ax25decode(packet):
+    if (len(packet) < 20):
+        print("ERROR: ax25decode, packet not in ax25 UI format")
+        return 0
 
     packet = unstuffPacket(packet)
     decodedPacket = ax25info()
