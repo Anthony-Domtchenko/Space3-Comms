@@ -48,7 +48,7 @@ void loop() {
       if (client.available()) {
         String data = client.readStringUntil('\n'); // Read incoming data (blocking)
         Serial.println("Received: " + data);
-        client.println("Message Received Slug"); // Send response
+        client.println("Message Received!"); // Send response
       }
     }
     client.stop(); // Close the connection

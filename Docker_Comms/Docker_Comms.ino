@@ -12,7 +12,7 @@
 #define BUFFER_SIZE 276
 
 // Set these to your desired credentials.
-const char *ssid = "Dockers";
+const char *ssid = "DOCKER-1";
 const char *password = "Bingus123";
 
 IPAddress local_ip(192, 168, 1, 1);
@@ -71,9 +71,9 @@ void loop() {
         Serial.print("\n");
         Serial.print("Source SSID: ");
         Serial.println(recievedPacket.getSourSSID());
-        Serial.print("Data: ");
+        Serial.print("Information Field: ");
         for (const auto& val : recievedPacket.getData()) {
-          int num = val; // this line is just so numbers are pritned in readable ascii
+          char num = val; // this line is just so numbers are pritned in readable ascii
           Serial.print(num);
         }
         Serial.print("\n");
@@ -86,7 +86,8 @@ void loop() {
 
 
         // Send back a packet with information 'A B C ~ }'
-        std::vector<char> responseData = {'A', 'B', 'C', 0x7E, 0x7D};
+        //std::vector<char> responseData = {'A', 'B', 'C', 0x7E, 0x7D};
+        std::vector<char> responseData = {'M', 'E', 'S', 'S', 'A', 'G', 'E', ' ', 'R', 'E', 'C', 'E', 'I', 'V', 'E', 'D', '!'};
         std::vector<char> txPacket = ax25encode(responseData, true);
         if (sendAx25Packet(&client, txPacket)) {
           Serial.println("Tx Packet Sent!");

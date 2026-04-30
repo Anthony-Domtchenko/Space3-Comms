@@ -37,7 +37,9 @@ class satClient:
         print(f"Received from ESP32: {data}")
 
     def wodDownlink(self):
-        request = WOD_DOWNLINK.to_bytes(3, byteorder='big')
+        #request = WOD_DOWNLINK.to_bytes(3, byteorder='big')
+        request = "Hello, world"
+        request = request.encode()
         msg = ax25encode(request, msgType='wod')
         self.sock.sendall(msg)
 
