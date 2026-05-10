@@ -75,9 +75,9 @@ void loop() {
         else if (requestP.getData()[0] == WOD_DOWNLINK) {
           Serial.println("Sending WOD Data");
           std::vector<char> sampleData = {1, 0, 0, 0, 1, 1, 0, 0, 0, 1};
-          for (char i = 1; i <= 24; i++) {
-            sampleData.front() = i;
-            sampleData.back() = i;
+          for (int i = 1; i <= 24; i++) {
+            sampleData.front() = static_cast<char>(i);
+            sampleData.back() = static_cast<char>(i);
             std::vector<char> txPacket = ax25encode(sampleData, true);
             sendAx25Packet(&client, txPacket);
             Serial.printf("Sending Packet %d\n", i);

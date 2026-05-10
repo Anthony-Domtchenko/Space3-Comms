@@ -136,9 +136,11 @@ std::vector<char> ax25encode(std::vector<char>& data, bool msgType) {
     if (val == FLAG || val == ESCAPE) {
       encodedPacket.push_back(ESCAPE);
       encodedPacket.push_back(val);
+      fcsData.push_back(val);
     }
     else {
       encodedPacket.push_back(val);
+      fcsData.push_back(val);
     }
   }
 

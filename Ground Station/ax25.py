@@ -20,6 +20,7 @@ class ax25info:
     sourSSID: int = 0
     data: bytes = b'\x00'
     fcs: bytes = b'\x11\x11'
+    calculatedFcs: bytes = b'\x11\x11'
 
 
 # NOTE: need to add FCS implementation
@@ -84,6 +85,9 @@ def ax25decode(packet):
     decodedPacket.data = packet[17:-3]
 
     decodedPacket.fcs = packet[-3:-1]
+
+    calculatedFcs = crc_func(packet[1:-3])
+    decodedPacket.calculatedFcs = calculatedFcs.to_bytes(2, byteorder='big')
 
     return decodedPacket
 

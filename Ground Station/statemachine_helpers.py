@@ -7,7 +7,8 @@ class State(Enum):
     WOD_DOWNLINK = 2
     SCI_DOWNLINK = 3
     CLEAR_WOD = 4
-    EXIT = 5
+    SEND_PARAMS = 5
+    EXIT = 6
 
 
 # Handles the initial user request for the gorund station task to perform
@@ -19,6 +20,7 @@ def taskRequest():
         "WOD DOWNLINK\n"
         "SCI DOWNLINK\n"
         "CLEAR WOD\n"
+        "SEND PARAMS\n"
         "EXIT\n")
 
     if (request == "TEST PING"):
@@ -29,6 +31,8 @@ def taskRequest():
         nextState = State.SCI_DOWNLINK
     elif(request == "CLEAR WOD"):
         nextState = State.CLEAR_WOD
+    elif(request == "SEND PARAMS"):
+        nextState = State.SEND_PARAMS
     elif(request == "EXIT"):
         nextState = State.EXIT
     else:

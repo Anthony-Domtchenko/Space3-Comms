@@ -1,6 +1,7 @@
 import socket
 from statemachine_helpers import *
 from satClient import satClient
+from fileManipulation import *
 
 
 currState = State.IDLE
@@ -26,6 +27,7 @@ while(1):
             if (client.connectToSat()):
                 client.wodDownlink()
             client.closeClient()
+            processRawData('WODdata.csv')
 
             nextState = State.IDLE
 
@@ -35,6 +37,10 @@ while(1):
 
         case State.CLEAR_WOD:
             print("CLEAR WOD OH YEAH\n")
+            nextState = State.IDLE
+
+        case State.SEND_PARAMS:
+            print("SEND PARAMS OH YEAH\n")
             nextState = State.IDLE
 
         case State.EXIT:
