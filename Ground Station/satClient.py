@@ -29,15 +29,8 @@ class satClient:
             return 0
 
     # Below funciton works with Docker_TCP_Test running on ESP32. Use it to verify hardware
-    # Function send hello world, and ESP32 sends a acknowlegment response back
+    # Function send hello world, and ESP32 sends a acknowlegment response back (AX.25 Format)
     def testPing(self):
-        msg = "Hello, world\n"
-        self.sock.sendall(msg.encode())
-        data = self.sock.recv(1024).decode('utf-8')          # blocking
-        print(f"Received from ESP32: {data}")
-
-    def wodDownlink(self):
-        #request = WOD_DOWNLINK.to_bytes(3, byteorder='big')
         request = "Hello, world"
         request = request.encode()
         msg = ax25encode(request, msgType='wod')
@@ -63,6 +56,23 @@ class satClient:
             print("SOURCE SSID:", decodedPacket.sourSSID)
             print("INFORMATION FIELD:", decodedPacket.data.decode('utf-8'))
             print("FCS:", decodedPacket.fcs.hex(' '))
+
+    def wodDownlink(self):
+        request = WOD_DOWNLINK.to_bytes(3, byteorder='big')
+        request = request.encode()
+        msg = ax25encode(request, msgType='wod')
+        self.sock.sendall(msg)
+
+        packet = []
+        while True:
+            rxData = self.sock.recv(100)
+
+            if not rxData:
+                break
+
+            packet.append(rxData)
+
+        packet = b''.join(packet)
 
     def closeClient(self):
         self.sock.close()

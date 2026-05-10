@@ -60,9 +60,7 @@ int sendAx25Packet(WiFiClient* client, std::vector<char>& packet){
   }
   else {
     // send packet
-    for (const auto& val : packet) {
-      client->write(val);
-    }
+    client->write(packet.data(), packet.size());
   }
 
   return 1;
