@@ -3,12 +3,14 @@
 
 from typing import Literal
 from dataclasses import dataclass
+import crcmod
 
 # Standard bytes in messages
 FLAG = b'\x7E'
 ESCAPE = b'\x7D'
-# NOTE: should add END_TRANSMISSION that gets escaped or use zero length dat packet?
 
+# Define the X-25 CRC function
+crc_func = crcmod.predefined.mkCrcFun('x-25')
 
 @dataclass
 class ax25info:
@@ -36,11 +38,13 @@ def ax25encode(data, msgType: Literal["wod", "science"]):
     control = b'\x03'
     protocol = b'\xf0'
     information = data
-    fcs = b'\x11\x11'
 
     if type(data) is bytes:
         if len(data) <= 256:
-            preStuffed = destAddr + sourAddr + control + protocol + information + fcs
+            preStuffed = destAddr + sourAddr + control + protocol + information
+            fcs = crc_func(preStuffed)
+            fcs = fcs.to_bytes(2, byteorder='big')
+            preStuffed += fcs
             ax25 = stuffPacket(preStuffed)
             return ax25
         else:

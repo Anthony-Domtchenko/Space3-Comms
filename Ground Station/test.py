@@ -1,35 +1,10 @@
-from ax25 import *
 
+import crcmod
+# Define the X-25 CRC function
+crc_func = crcmod.predefined.mkCrcFun('x-25')
 
-WOD_DOWNLINK = 1
-SCI_DOWNLINK = 2
-CLEAR_WOD = 3
-
-'''
-msg = b'\x7E\x7D'
-print(msg)
-stuffed = stuffPacket(msg)
-print(stuffed)
-unstuffed = unstuffPacket(stuffed)
-print(unstuffed)
-'''
-
-
-
-msg = 3
-msgA = msg.to_bytes(4, byteorder='big')
-msgB = b'\x7E\x7D'
-
-ax25msg = ax25encode(msgA, msgType='wod')
-
-
-print(ax25msg)
-print(type(ax25msg))
-
-decoded = ax25decode(ax25msg)
-print(decoded.data)
-
-
-vector = "123"
-sliced = vector[1:-2]
-print(sliced)
+# Example data (AX.25 frame content)
+data = b'\x88\x9E\x86\x96\x8A\xA4\xF6\x8E\xA4\x9E\xAA\x9C\x88\xFD\x03\xf0\x00'
+fcs = crc_func(data)
+print(type(fcs))
+print(hex(fcs))

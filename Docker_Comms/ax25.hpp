@@ -29,6 +29,8 @@ class RxAx25 {
     uint8_t getSourSSID();
     std::vector<char> getData();
     std::array<char,2> getFcs();
+    std::array<char,2> getCalculatedFcs();
+    bool fcsCompare();
 
   
   private:
@@ -38,11 +40,10 @@ class RxAx25 {
     uint8_t             sourSSID;
     std::vector<char>   data;
     std::array<char,2>  fcs;
+    std::array<char,2>  calculatedFcs;
 };
 
 
-// NOTE: need to add parameter that describes END OF TRANSMISSION data (perhap empty data frame = EOT)
-// NOTE: need to add FCS implementation
 // NOTE: addresses are hard coded because we wont be sending to any other satellites but might change if time permits
 // Encodes byte data into AX.25 UI format to send to ground station (source address is always satellite)
 // Maximum amount of data is 256 bytes
@@ -50,6 +51,9 @@ class RxAx25 {
 // returns: ON SUCCESS: byte-stuffed ax25 packet
 //          ON FAILURE: empty vector
 std::vector<char> ax25encode(std::vector<char>& data, bool msgType);
+
+// Calculates AX.25 FCS from input data
+std::array<char,2> calculateFcs(std::vector<char>& data);
 
 
 #endif

@@ -7,9 +7,10 @@ SAT_PORT = 4210
 
 # Task requests for the satelliteto carry out. This is the data in the first packet sent to the satellite.
 # The satellite knows what data to send back or function to perform based on this first packet
-WOD_DOWNLINK = 1
-SCI_DOWNLINK = 2
-CLEAR_WOD = 3
+WOD_DOWNLINK = 0
+SCI_DOWNLINK = 1
+CLEAR_WOD = 2
+SEND_PARAMS = 3
 
 
 class satClient:
@@ -58,21 +59,21 @@ class satClient:
             print("FCS:", decodedPacket.fcs.hex(' '))
 
     def wodDownlink(self):
-        request = WOD_DOWNLINK.to_bytes(3, byteorder='big')
-        request = request.encode()
+        # SEND REQUEST PACKET
+        request = WOD_DOWNLINK.to_bytes(1, byteorder='big')
         msg = ax25encode(request, msgType='wod')
         self.sock.sendall(msg)
 
-        packet = []
-        while True:
-            rxData = self.sock.recv(100)
+        # RECIEVE AND STORE RAW WOD PACKETS
+        with open("rawData.txt", "wb") as f:
+            while True:
+                rxData = self.sock.recv(1024)
+                if not rxData:
+                    print("All data recieved from Satellite, begin processing")
+                    break
+                f.write(rxData)
 
-            if not rxData:
-                break
 
-            packet.append(rxData)
-
-        packet = b''.join(packet)
 
     def closeClient(self):
         self.sock.close()
