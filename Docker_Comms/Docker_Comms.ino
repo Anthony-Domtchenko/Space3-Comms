@@ -3,13 +3,16 @@
 #include <vector>
 #include "transmission.hpp"
 #include "ax25.hpp"
+#include "uart.h"
+#include "beacon.hpp"
 
-
-#define SAT_IP "192.168.1.1"
-#define SAT_PORT 4210
 #define GROUND_STATION_IP "192.168.1.2"
+#define SAT_IP            "192.168.1.1"
+#define SAT_PORT 4210
 
-#define BUFFER_SIZE 276
+#define TX_PIN 47
+#define RX_PIN 48
+#define COMMS_BAUDRATE 3000000
 
 // Set these to your desired credentials.
 const char *ssid = "DOCKER-1";
@@ -32,6 +35,9 @@ enum TaskRequest {
 
 void setup() {
   Serial.begin(115200);
+  Serial2.begin(COMMS_BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // OBC UART Connection
+  Mcu.begin(HELTEC_BOARD,SLOW_CLK_TPYE);
+
   Serial.println();
   Serial.println("Configuring access point...");
 
@@ -47,10 +53,21 @@ void setup() {
   Serial.println(myIP);
 
   satServer.begin();
+
+  Serial.println();
+  Serial.println("Configuring LoRa...");
+  initLoRa();
 }
 
 
 void loop() {
+  // SATELLITE BEACON
+  if (handleOBCBeacon()) {
+    Serial.println("OBC Beacon Successful");
+  }
+
+
+  // SATELLITE LINK
   WiFiClient client = satServer.available(); // Check for a client
 
   if (client) {
@@ -72,6 +89,7 @@ void loop() {
         if (requestP.getData().size() > 1) {
           Serial.println("Client Request was not valid");
         }
+
         else if (requestP.getData()[0] == WOD_DOWNLINK) {
           Serial.println("Sending WOD Data");
           std::vector<char> sampleData = {1, 0, 0, 0, 1, 1, 0, 0, 0, 1};
@@ -83,15 +101,19 @@ void loop() {
             Serial.printf("Sending Packet %d\n", i);
           }
         }
+
         else if (requestP.getData()[0] == SCI_DOWNLINK) {
 
         }
+
         else if (requestP.getData()[0] == CLEAR_WOD) {
 
         }
+
         else if (requestP.getData()[0] == SEND_PARAMS) {
 
         }
+
         else {
           Serial.println("Client Request was not valid");
         }
