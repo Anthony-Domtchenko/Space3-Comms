@@ -1,11 +1,14 @@
+from fileManipulation import *
 
-import crcmod
-# Define the X-25 CRC function
-crc_func = crcmod.predefined.mkCrcFun('x-25')
-
-# Example data (AX.25 frame content)
-data = b'\x88\x9E\x86\x96\x8A\xA4\xF6\x8E\xA4\x9E\xAA\x9C\x88\xFD\x03\xf0\x00'
-fcs = crc_func(data)
-print(type(fcs))
-print(hex(fcs))
-print(type(hex(fcs)))
+filename = 'test.csv'
+with open('rawData.txt', "rb") as f_in, open(filename, 'w', newline='', encoding='utf-8') as f_out:
+    # Split raw data into AX25 packets by flag delimeters
+    content = f_in.read()
+    delimiter = b'\x7E'
+    escape = b'\x7d'
+    #ax25Chunks = content.split(delimiter)
+    ax25Chunks = extract_frames(content, delimiter, escape)
+    print(type(ax25Chunks))
+    print(len(ax25Chunks))
+    for i in ax25Chunks:
+        print(i.hex(' '))

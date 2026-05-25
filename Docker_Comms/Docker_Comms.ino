@@ -5,6 +5,7 @@
 #include "ax25.hpp"
 #include "uart.h"
 #include "beacon.hpp"
+#include "link.hpp"
 
 #define GROUND_STATION_IP "192.168.1.2"
 #define SAT_IP            "192.168.1.1"
@@ -23,14 +24,6 @@ IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
 WiFiServer satServer(SAT_PORT); // TCP Server
-
-
-enum TaskRequest {
-    WOD_DOWNLINK,
-    SCI_DOWNLINK,
-    CLEAR_WOD,
-    SEND_PARAMS
-  };
 
 
 void setup() {
@@ -66,63 +59,11 @@ void loop() {
     Serial.println("OBC Beacon Successful");
   }
 
-
   // SATELLITE LINK
   WiFiClient client = satServer.available(); // Check for a client
-
   if (client) {
     Serial.println("New Client Connected");
-
-    while (client.connected()) {
-      if (client.available()) {
-        // Start by recieving the request packet from the ground station
-        std::vector<char> packet = recieveAx25Packet(&client);
-        RxAx25 requestP(packet);
-        if (requestP.fcsCompare()) {
-          Serial.println("Request packet recieved: FCS is okay");
-        }
-        else {
-          Serial.println("WARNING: FCS of incoming packet does not match calculated");
-        }
-
-
-        if (requestP.getData().size() > 1) {
-          Serial.println("Client Request was not valid");
-        }
-
-        else if (requestP.getData()[0] == WOD_DOWNLINK) {
-          Serial.println("Sending WOD Data");
-          std::vector<char> sampleData = {1, 0, 0, 0, 1, 1, 0, 0, 0, 1};
-          for (int i = 1; i <= 24; i++) {
-            sampleData.front() = static_cast<char>(i);
-            sampleData.back() = static_cast<char>(i);
-            std::vector<char> txPacket = ax25encode(sampleData, true);
-            sendAx25Packet(&client, txPacket);
-            Serial.printf("Sending Packet %d\n", i);
-          }
-        }
-
-        else if (requestP.getData()[0] == SCI_DOWNLINK) {
-
-        }
-
-        else if (requestP.getData()[0] == CLEAR_WOD) {
-
-        }
-
-        else if (requestP.getData()[0] == SEND_PARAMS) {
-
-        }
-
-        else {
-          Serial.println("Client Request was not valid");
-        }
-
-        client.stop();
-      }
-    }
-
-    Serial.println("Client Disconnected");
+    handleLink(&client);
   }
 }
 

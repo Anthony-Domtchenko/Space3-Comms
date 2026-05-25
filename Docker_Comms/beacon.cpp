@@ -32,8 +32,9 @@ bool handleOBCBeacon(void) {
 
     // Send Packet over LoRa
     sendLoRa(beaconPacket);
+    return true;
   }
-  return true;
+  return false;
 }
 
 

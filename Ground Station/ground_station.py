@@ -32,7 +32,12 @@ while(1):
             nextState = State.IDLE
 
         case State.SCI_DOWNLINK:
-            print("SCI DOWNLINK OH YEAH\n")
+            client = satClient()
+            if (client.connectToSat()):
+                client.sciDownlink()
+            client.closeClient()
+            processRawData('SCIdata.csv')
+
             nextState = State.IDLE
 
         case State.CLEAR_WOD:

@@ -145,9 +145,14 @@ std::vector<char> ax25encode(std::vector<char>& data, bool msgType) {
   }
 
   // Add fcs
-  // NOTE: Currently hard coded but will implement actual FCS later down the line (will also need to be byte stuffed)
   std::array<char,2> fcs = calculateFcs(fcsData);
+  if (fcs[0] == FLAG || fcs[0] == ESCAPE) {
+    encodedPacket.push_back(ESCAPE);
+  }
   encodedPacket.push_back(fcs[0]);
+  if (fcs[1] == FLAG || fcs[1] == ESCAPE) {
+    encodedPacket.push_back(ESCAPE);
+  }
   encodedPacket.push_back(fcs[1]);
 
   // Add finishing flag
