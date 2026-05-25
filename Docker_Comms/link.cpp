@@ -73,15 +73,24 @@ LinkTask getTask(WiFiClient* client) {
 
 
 void handleWodDownlink(WiFiClient* client) {
-  Serial.println("Sending WOD Data");
-  std::vector<char> sampleData = {1, 0, 0, 0, 1, 1, 0, 0, 0, 1};
-  for (int i = 1; i <= 24; i++) {
-    sampleData.front() = static_cast<char>(i);
-    sampleData.back() = static_cast<char>(i);
-    std::vector<char> txPacket = ax25encode(sampleData, true);
-    sendAx25Packet(client, txPacket);
-    Serial.printf("Sending Packet %d\n", i);
-  }
+  // Send message to OBC requesting WOD Data
+  // while OBC Uart not available
+      // delay(1)
+  // Receive file info
+  // Send Ack to OBC
+
+  // LOOP
+    // while OBC Uart not available
+      // delay(1)
+    // Receive Chunk
+    // If transfer end chunk
+      // break
+    // Send Ack to OBC
+    // Send Chunk to GS
+
+
+  // Send message to OBC requesting WOD Data
+
 }
 
 
