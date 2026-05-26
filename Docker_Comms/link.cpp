@@ -167,6 +167,10 @@ bool getSendFileInfo(WiFiClient* client) {
     }
     
     // SEND THE FILE INFO TO GROUND STATION
+    int fileID = msg.payload[0];
+    int chunkSize = (msg.payload[1] << 24) | (msg.payload[2] << 16) | (msg.payload[3] << 8) | msg.payload[4];
+    int numChunks = (msg.payload[5] << 24) | (msg.payload[6] << 16) | (msg.payload[7] << 8) | msg.payload[8];
+    Serial.printf("Transmitting WOD file with File ID: %d Chunk Size: %d No. Chunks: %d\r\n", fileID, chunkSize, numChunks);
     std::vector<char> rawData(msg.payload, msg.payload + msg.length);
     std::vector<char> txPacket = ax25encode(rawData, true);
     if (sendAx25Packet(client, txPacket)) {

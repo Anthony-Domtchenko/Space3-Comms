@@ -27,7 +27,9 @@ while(1):
             if (client.connectToSat()):
                 client.wodDownlink()
             client.closeClient()
-            processRawData('WODdata.csv')
+            processAx25Data('WODax25.csv')
+            processWodData('WODdata.csv')
+            deleteRawDataFile()
 
             nextState = State.IDLE
 
@@ -36,7 +38,8 @@ while(1):
             if (client.connectToSat()):
                 client.sciDownlink()
             client.closeClient()
-            processRawData('SCIdata.csv')
+            processAx25Data('SCIAx25data.csv')
+            deleteRawDataFile()
 
             nextState = State.IDLE
 
