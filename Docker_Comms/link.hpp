@@ -16,6 +16,17 @@
 #include "transmission.hpp"
 
 
+//-------------DEFINES------------------------------------------------------------------------
+#define WOD_INFO_ID     0x66
+#define WOD_REQUEST_ID  0x67
+#define COMMS_ACK_ID    0x68
+#define WOD_RECORD_ID   0x69
+#define END_TRANSFER_ID 0x70
+
+#define UART_WAIT_TIMEOUT_US 2000000
+
+
+//-------------Typedefs and Enums-------------------------------------------------------------
 typedef enum{
   LINK_INVALID = -1,
   LINK_WOD_DOWNLINK,
@@ -28,7 +39,7 @@ typedef enum{
 extern HardwareSerial Serial2;
 
 
-
+//-------------Function Prototypes------------------------------------------------------------
 // decides what actions need to be performed when a link is established
 void handleLink(WiFiClient* client);
 
@@ -36,8 +47,14 @@ void handleLink(WiFiClient* client);
 LinkTask getTask(WiFiClient* client);
 
 //Handlers for each LinkTask
-void handleWodDownlink(WiFiClient* client);
+bool handleWodDownlink(WiFiClient* client);
+void sendWodRequest(void);
+bool getSendFileInfo(WiFiClient* client);
+
 void handleSciDownlink(WiFiClient* client);
+
+bool waitUART(void);  // timeout occurs if program waits longer than UART_WAIT_TIMEOUT_US mircroseconds
+void sendObcAck(void);
 
 
 #endif

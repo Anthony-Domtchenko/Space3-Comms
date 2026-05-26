@@ -19,7 +19,7 @@ void initLoRa(void) {
 
 bool handleOBCBeacon(void) {
   UART_msg_t msg;
-  if (UART_receive(&Serial2, &msg)) {
+  if (UART_receive(&Serial2, &msg, DEFAULT_UART_TIMEOUT_US)) {
     Serial.println("Recieved beacon message from OBC");
 
     if (!checkMessage(&msg)) {

@@ -7,7 +7,9 @@ void handleLink(WiFiClient* client) {
       LinkTask linkTask = getTask(client);
 
       if (linkTask == LINK_WOD_DOWNLINK) {
-        handleWodDownlink(client);
+        if (!handleWodDownlink(client)) {
+          Serial.println("ERROR: WOD Downlink Failed");
+        }
       }
 
       else if (linkTask == LINK_SCI_DOWNLINK) {
@@ -23,7 +25,7 @@ void handleLink(WiFiClient* client) {
       }
 
       else {
-        Serial.println("Something catasrophic has happened if we end up here");
+        Serial.println("Ground Station Request Failed");
       }
 
       client->stop();
@@ -72,7 +74,7 @@ LinkTask getTask(WiFiClient* client) {
 
 
 
-void handleWodDownlink(WiFiClient* client) {
+bool handleWodDownlink(WiFiClient* client) {
   // Send message to OBC requesting WOD Data
   // while OBC Uart not available
       // delay(1)
@@ -85,12 +87,93 @@ void handleWodDownlink(WiFiClient* client) {
     // Receive Chunk
     // If transfer end chunk
       // break
-    // Send Ack to OBC
     // Send Chunk to GS
+    // Send Ack to OBC
 
 
-  // Send message to OBC requesting WOD Data
+  sendWodRequest();                 // Send message to OBC requesting WOD Data
+  if (!waitUART()) {                // Sit and wait for response
+    return false;
+  }                       
+  if (!getSendFileInfo(client)) {   // Retrieve the File header from the OBC and send it to the ground station
+    return false;
+  }
 
+  while(true) {                     // Loop through receiving and transmitting WOD data until EOF message
+
+    if (!waitUART()) {              // Sit and wait for response
+      return false;
+    } 
+
+    // RECEIVE THE WOD CHUNK FROM OBC
+    UART_msg_t msg;
+    if (UART_receive(&Serial2, &msg, DEFAULT_UART_TIMEOUT_US))
+    {
+      if (msg.length < 1)
+      {
+        Serial.println("Warning: Bad UART WOD message length");
+        return false;
+      }
+      if (msg.id == END_TRANSFER_ID) {
+        Serial.println("WOD end of transfer reached");
+        break;
+      }
+      if (msg.id != WOD_RECORD_ID)
+      { 
+        Serial.println("Warning: Bad WOD chunk ID received from OBC");
+        return false;
+      }
+      
+      // SEND THE WOD CHUNK TO GROUND STATION
+      std::vector<char> rawData(msg.payload, msg.payload + msg.length);
+      std::vector<char> txPacket = ax25encode(rawData, true);
+      if (!sendAx25Packet(client, txPacket)) {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+
+    sendObcAck();                   // Send acknowledgement to OBC
+  }
+
+  return true;
+}
+
+void sendWodRequest(void) {
+  UART_msg_t msg;
+  msg.sof        = UART_SOF;
+  msg.id         = WOD_REQUEST_ID;
+  msg.length     = 1;
+  msg.payload[0] = WOD_REQUEST_ID;
+  UART_transmit(&Serial2, &msg);
+}
+
+bool getSendFileInfo(WiFiClient* client) {
+  // GET THE FILE INFO FROM OBC
+  UART_msg_t msg;
+  if (UART_receive(&Serial2, &msg, DEFAULT_UART_TIMEOUT_US))
+  {
+    if (msg.length < 1)
+    {
+      Serial.println("Warning: Bad file info message length");
+      return false;
+    }
+    if (msg.id != WOD_INFO_ID)
+    { 
+      Serial.println("Warning: Bad file info ID received from OBC");
+      return false;
+    }
+    
+    // SEND THE FILE INFO TO GROUND STATION
+    std::vector<char> rawData(msg.payload, msg.payload + msg.length);
+    std::vector<char> txPacket = ax25encode(rawData, true);
+    if (sendAx25Packet(client, txPacket)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -107,4 +190,29 @@ void handleSciDownlink(WiFiClient* client) {
   }
 }
 
+
+
+
+bool waitUART(void) {
+  // Sit and wait for UART from OBC to arrive
+  int waitTime_us = 0;
+  while (!Serial2.available()) {
+    if (waitTime_us > UART_WAIT_TIMEOUT_US) {
+      Serial.println("ERROR: UART timed out waiting for OBC");
+      return false;
+    }
+    delayMicroseconds(1);
+    waitTime_us++;
+  }
+  return true;
+}
+
+void sendObcAck(void) {
+  UART_msg_t msg;
+  msg.sof = UART_SOF;
+  msg.id  = COMMS_ACK_ID;
+  msg.length = 1;
+  msg.payload[0] = COMMS_ACK_ID;
+  UART_transmit(&Serial2, &msg);
+}
 
