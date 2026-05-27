@@ -11,8 +11,8 @@
 #define SAT_IP            "192.168.1.1"
 #define SAT_PORT 4210
 
-#define TX_PIN 47
-#define RX_PIN 48
+#define TX_PIN 48
+#define RX_PIN 47
 #define COMMS_BAUDRATE 3000000
 
 // Set these to your desired credentials.

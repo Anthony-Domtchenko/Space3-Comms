@@ -98,6 +98,7 @@ bool handleWodDownlink(WiFiClient* client) {
   if (!getSendFileInfo(client)) {   // Retrieve the File header from the OBC and send it to the ground station
     return false;
   }
+  sendObcAck();                     // Send acknowledgement to OBC
 
   while(true) {                     // Loop through receiving and transmitting WOD data until EOF message
 
@@ -190,7 +191,7 @@ void handleSciDownlink(WiFiClient* client) {
     sampleData.back() = static_cast<char>(i);
     std::vector<char> txPacket = ax25encode(sampleData, false);
     sendAx25Packet(client, txPacket);
-    Serial.printf("Sending Packet %d\n", i);
+    Serial.printf("Sending Packet %d\r\n", i);
   }
 }
 

@@ -1,6 +1,7 @@
 #include "LoRaWan_APP.h"
 #include "Arduino.h"
 #include "ax25.hpp"
+#include "dataDisplay.hpp"
 
 
 #define RF_FREQUENCY                                915000000 // Hz
@@ -26,22 +27,22 @@ int16_t rssi,rxSize;
 bool loraIdle = true;
 
 void setup() {
-    Serial.begin(115200);
-    Mcu.begin(HELTEC_BOARD,SLOW_CLK_TPYE);
+  Serial.begin(115200);
+  Mcu.begin(HELTEC_BOARD,SLOW_CLK_TPYE);
 
-    rssi=0;
-  
-    RadioEvents.RxDone = OnRxDone;
-    Radio.Init( &RadioEvents );
-    Radio.SetChannel( RF_FREQUENCY );
-    Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
-                               LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
-                               LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
-                               0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
+  rssi=0;
+
+  RadioEvents.RxDone = OnRxDone;
+  Radio.Init( &RadioEvents );
+  Radio.SetChannel( RF_FREQUENCY );
+  Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
+                              LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
+                              LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
+                              0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
 
 
   Serial.println();
-  Serial.println("Configuring LoRa Transmitter...");
+  Serial.println("Configuring LoRa Receiver...");
 }
 
 void loop() {
@@ -57,46 +58,59 @@ void loop() {
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
-    rssi=rssi;
-    rxSize=size;
-    std::vector<char> ax25Packet(payload, payload + size);
-    Radio.Sleep();
+  rssi=rssi;
+  rxSize=size;
+  std::vector<char> ax25Packet(payload, payload + size);
+  Radio.Sleep();
 
-    RxAx25 decodedPacket(ax25Packet);
-    Serial.printf("\r\nReceived Packet with rssi %d , length %d\r\n",rssi,rxSize);
+  RxAx25 decodedPacket(ax25Packet);
+  Serial.printf("\r\nReceived Packet with rssi %d , length %d\r\n",rssi,rxSize);
 
-    Serial.print("Destination Address: ");
-    for (char c : decodedPacket.getDestAddr()) {
-    Serial.print(c);
-    }
-    Serial.println();
+  char hexBuffer[3]; // Buffer for 2 hex digits + null terminator
+  Serial.println("Raw AX25 Data:");
+  for (size_t i = 0; i < size; i++) {
+    sprintf(hexBuffer, "%02X", payload[i]); // %02X ensures 2 digits, uppercase
+    Serial.print(hexBuffer);
+    Serial.print(" ");
+  }
+  Serial.print("\r\n");
 
-    Serial.printf("Desitanation SSID: %d\r\n", decodedPacket.getDestSSID());
+  Serial.print("Destination Address: ");
+  for (char c : decodedPacket.getDestAddr()) {
+  Serial.print(c);
+  }
+  Serial.println();
 
-    Serial.print("Source Address: ");
-    for (char c : decodedPacket.getSourAddr()) {
-    Serial.print(c);
-    }
-    Serial.println();
+  Serial.printf("Desitanation SSID: %d\r\n", decodedPacket.getDestSSID());
 
-    Serial.printf("Source SSID: %d\r\n", decodedPacket.getSourSSID());
-    Serial.println();
+  Serial.print("Source Address: ");
+  for (char c : decodedPacket.getSourAddr()) {
+  Serial.print(c);
+  }
+  Serial.println();
 
-    Serial.print("Data: ");
-    for (char c : decodedPacket.getData()) {
-    Serial.printf("%d", c);
-    }
-    Serial.println();
+  Serial.printf("Source SSID: %d\r\n", decodedPacket.getSourSSID());
 
-    if (decodedPacket.fcsCompare()) {
-      Serial.println("FCS is intact");
-    }
-    else {
-      Serial.println("FCS is fucked");
-    }
+  /*
+  Serial.print("Data: ");
+  for (char c : decodedPacket.getData()) {
+  Serial.printf("%d", c);
+  }
+  Serial.println();
+  */
+
+  if (decodedPacket.fcsCompare()) {
+    Serial.println("FCS is intact");
+  }
+  else {
+    Serial.println("FCS is fucked");
+  }
+
+  std::vector<char> data = decodedPacket.getData();
+  printWod(data);
 
 
-    loraIdle = true;
+  loraIdle = true;
 }
 
 

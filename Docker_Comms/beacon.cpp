@@ -44,7 +44,7 @@ bool checkMessage(UART_msg_t* msg) {
     Serial.println("Beacon ID Invalid");
     return false;
   }
-  if (msg->length != BEACON_TIME_STRING_BYTES + CUBESAT_IDENTIFIER_BYTES + BEACON_MSG_DATA_BYTES) {
+  if (msg->length != sizeof(COMMS_BeaconData_t)) {
     Serial.println("Beacon Length Invalid");
     return false;
   }

@@ -12,7 +12,7 @@ void setup() {
 }
 
 void loop() {
-  delay(5000);
+  delay(10000);
   std::vector<char> msg = {1, 2, 3, 4, 5, 6};
   Serial.println("Sending Packet!");
   std::vector<char> packet = ax25encode(msg, true);

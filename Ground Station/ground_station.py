@@ -28,7 +28,7 @@ while(1):
                 client.wodDownlink()
             client.closeClient()
             processAx25Data('WODax25.csv')
-            processWodData('WODdata.csv')
+            #processWodData('WODdata.csv')
             deleteRawDataFile()
 
             nextState = State.IDLE
