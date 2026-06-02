@@ -2,6 +2,7 @@
 #include "Arduino.h"
 #include "ax25.hpp"
 #include "dataDisplay.hpp"
+#include "OLED.hpp"
 
 
 #define RF_FREQUENCY                                915000000 // Hz
@@ -43,6 +44,10 @@ void setup() {
 
   Serial.println();
   Serial.println("Configuring LoRa Receiver...");
+
+  initOLED();
+  bootScreen();
+  delay(1000);
 }
 
 void loop() {
@@ -107,8 +112,11 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
   }
 
   std::vector<char> data = decodedPacket.getData();
-  printWod(data);
+  COMMS_BeaconData_t receivedWod;
+  memcpy(&receivedWod, data.data(), sizeof(COMMS_BeaconData_t));
+  printWod(receivedWod);
 
+  newRxScreen(receivedWod, rssi);
 
   loraIdle = true;
 }

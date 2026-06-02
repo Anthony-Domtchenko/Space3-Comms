@@ -6,6 +6,7 @@
 #include "uart.h"
 #include "beacon.hpp"
 #include "link.hpp"
+#include "OLED.hpp"
 
 #define GROUND_STATION_IP "192.168.1.2"
 #define SAT_IP            "192.168.1.1"
@@ -50,6 +51,10 @@ void setup() {
   Serial.println();
   Serial.println("Configuring LoRa...");
   initLoRa();
+
+  initOLED();
+  bootScreen();
+  delay(1000);
 }
 
 

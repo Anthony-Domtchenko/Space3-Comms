@@ -68,6 +68,6 @@ typedef struct __attribute__((packed)) {
 
 
 
-void printWod(std::vector<char>& data);
+void printWod(COMMS_BeaconData_t& receivedWod);
 
 #endif

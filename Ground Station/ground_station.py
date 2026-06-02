@@ -3,6 +3,9 @@ from statemachine_helpers import *
 from satClient import satClient
 from fileManipulation import *
 
+WOD_FOLDER = 'WOD Data'
+SCI_FOLDER = 'Science Data'
+
 
 currState = State.IDLE
 nextState = State.IDLE
@@ -27,9 +30,11 @@ while(1):
             if (client.connectToSat()):
                 client.wodDownlink()
             client.closeClient()
-            processAx25Data('WODax25.csv')
-            #processWodData('WODdata.csv')
-            deleteRawDataFile()
+            processAx25Data(WOD_FOLDER, 'WODax25.csv')
+            processWodData(WOD_FOLDER, 'WODdata.csv')
+            csv_relative_path = f"./{WOD_FOLDER}/WODdata.csv"  # This is a stupid line of code
+            plotWodData(csv_relative_path, WOD_FOLDER)
+            #deleteRawDataFile()
 
             nextState = State.IDLE
 
@@ -38,8 +43,8 @@ while(1):
             if (client.connectToSat()):
                 client.sciDownlink()
             client.closeClient()
-            processAx25Data('SCIAx25data.csv')
-            deleteRawDataFile()
+            processAx25Data(SCI_FOLDER, 'SCIAx25data.csv')
+            #deleteRawDataFile()
 
             nextState = State.IDLE
 

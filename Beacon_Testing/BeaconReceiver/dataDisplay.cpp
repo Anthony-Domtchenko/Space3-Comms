@@ -1,10 +1,7 @@
 #include "dataDisplay.hpp"
 
 
-void printWod(std::vector<char>& data) {
-  COMMS_BeaconData_t receivedWod;
-  memcpy(&receivedWod, data.data(), sizeof(COMMS_BeaconData_t));
-
+void printWod(COMMS_BeaconData_t& receivedWod) {
   Serial.println("---------------------------------------------------------------");
   Serial.print("Beacon Time: ");
   Serial.print(receivedWod.utc_time);

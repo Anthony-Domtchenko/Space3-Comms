@@ -6,7 +6,7 @@
 //--------------Defines----------------
 #define RX_CRC_BYTES      2
 #define RX_HEADER_BYTES   3
-#define RX_BUFFER_BYTES 256
+#define RX_BUFFER_BYTES 254
 #define UART_SOF       0x64
 #define DEFAULT_UART_TIMEOUT_US 100
 
