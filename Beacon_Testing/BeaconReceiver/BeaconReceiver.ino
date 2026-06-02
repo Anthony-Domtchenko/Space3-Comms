@@ -3,6 +3,7 @@
 #include "ax25.hpp"
 #include "dataDisplay.hpp"
 #include "OLED.hpp"
+#include "uart.h"
 
 
 #define RF_FREQUENCY                                915000000 // Hz
@@ -54,7 +55,6 @@ void loop() {
   if(loraIdle)
   {
     loraIdle = false;
-    Serial.println("into RX mode");
     Radio.Rx(0);
   }
   Radio.IrqProcess();
@@ -69,6 +69,8 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
   Radio.Sleep();
 
   RxAx25 decodedPacket(ax25Packet);
+
+  /*
   Serial.printf("\r\nReceived Packet with rssi %d , length %d\r\n",rssi,rxSize);
 
   char hexBuffer[3]; // Buffer for 2 hex digits + null terminator
@@ -96,13 +98,13 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 
   Serial.printf("Source SSID: %d\r\n", decodedPacket.getSourSSID());
 
-  /*
+  
   Serial.print("Data: ");
   for (char c : decodedPacket.getData()) {
   Serial.printf("%d", c);
   }
   Serial.println();
-  */
+  
 
   if (decodedPacket.fcsCompare()) {
     Serial.println("FCS is intact");
@@ -110,13 +112,22 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
   else {
     Serial.println("FCS is fucked");
   }
+  */
 
   std::vector<char> data = decodedPacket.getData();
   COMMS_BeaconData_t receivedWod;
   memcpy(&receivedWod, data.data(), sizeof(COMMS_BeaconData_t));
-  printWod(receivedWod);
+  //printWod(receivedWod);
 
   newRxScreen(receivedWod, rssi);
+
+  // Send packet to PC
+  UART_msg_t txMsg;
+  txMsg.sof = UART_SOF;
+  txMsg.id  = BEACON_MSG_ID;
+  txMsg.length = ax25Packet.size();
+  memcpy(txMsg.payload, ax25Packet.data(), ax25Packet.size() * sizeof(uint8_t));
+  UART_transmit(&Serial, &txMsg);
 
   loraIdle = true;
 }
