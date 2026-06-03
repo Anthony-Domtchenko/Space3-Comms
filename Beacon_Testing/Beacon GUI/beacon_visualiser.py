@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
-PORT = "COM3"
+PORT = "COM4"
 BAUD = 115200
 BEACON_TIME_STRING_BYTES = 32   
 CUBESAT_IDENTIFIER_BYTES = 6    
@@ -230,6 +230,8 @@ def serial_worker():
                 if packet_id != BEACON_MSG_ID:
                     continue
 
+                print("Packet Received! Raw AX25 Bytes:")
+                print(payload.hex(' '))
                 decodedPacket = ax25decode(payload)
                 wod = BeaconPacket.from_buffer_copy(decodedPacket.data)
                 data_queue.put(wod)  # add WOD data to GUI queue

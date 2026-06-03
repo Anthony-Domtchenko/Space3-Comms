@@ -1,4 +1,5 @@
 from ctypes import *
+import ctypes
 import math
 
 class WodPacket(Structure):
@@ -107,7 +108,7 @@ class WodPacket(Structure):
 
     @property
     def battery_current(self):
-        return self.raw_battery_current * 0.001
+        return ctypes.c_int16(self.raw_battery_current).value * 0.001
     
     @property
     def omega_x(self):

@@ -69,55 +69,9 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
   Radio.Sleep();
 
   RxAx25 decodedPacket(ax25Packet);
-
-  /*
-  Serial.printf("\r\nReceived Packet with rssi %d , length %d\r\n",rssi,rxSize);
-
-  char hexBuffer[3]; // Buffer for 2 hex digits + null terminator
-  Serial.println("Raw AX25 Data:");
-  for (size_t i = 0; i < size; i++) {
-    sprintf(hexBuffer, "%02X", payload[i]); // %02X ensures 2 digits, uppercase
-    Serial.print(hexBuffer);
-    Serial.print(" ");
-  }
-  Serial.print("\r\n");
-
-  Serial.print("Destination Address: ");
-  for (char c : decodedPacket.getDestAddr()) {
-  Serial.print(c);
-  }
-  Serial.println();
-
-  Serial.printf("Desitanation SSID: %d\r\n", decodedPacket.getDestSSID());
-
-  Serial.print("Source Address: ");
-  for (char c : decodedPacket.getSourAddr()) {
-  Serial.print(c);
-  }
-  Serial.println();
-
-  Serial.printf("Source SSID: %d\r\n", decodedPacket.getSourSSID());
-
-  
-  Serial.print("Data: ");
-  for (char c : decodedPacket.getData()) {
-  Serial.printf("%d", c);
-  }
-  Serial.println();
-  
-
-  if (decodedPacket.fcsCompare()) {
-    Serial.println("FCS is intact");
-  }
-  else {
-    Serial.println("FCS is fucked");
-  }
-  */
-
   std::vector<char> data = decodedPacket.getData();
   COMMS_BeaconData_t receivedWod;
   memcpy(&receivedWod, data.data(), sizeof(COMMS_BeaconData_t));
-  //printWod(receivedWod);
 
   newRxScreen(receivedWod, rssi);
 

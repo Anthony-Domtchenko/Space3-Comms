@@ -97,7 +97,7 @@ def processWodData(foldername, filename):
                      '5V Voltage', '5V Current Ch1', '5V Current Ch2', '6V Voltage', '6V Current Ch1', '12V Voltage', '12V Current Ch1',
                      '12V Current Ch2', 'MPPT1 Voltage', 'MPPT1 Current', 'MPPT2 Voltage', 'MPPT2 Current', 'Bat Voltage', 'Bat Current',
                      'Bat Temp', 'MCU Temp', 'Roll', 'Pitch', 'Yaw', 'omegaX', 'omegaY', 'omegaZ', 'xRw Speed', 'yRw Speed', 'zRw Speed',
-                     'xMag Current', 'yMag Current', 'zMag Current', 'Detumble Scale' 'EPS Faults', 'OBC Faults', 'ADCS Faults',
+                     'xMag Current', 'yMag Current', 'zMag Current', 'Detumble Scale', 'EPS Faults', 'OBC Faults', 'ADCS Faults',
                      'Payload Faults', 'Comms Faults']
         writer.writerow(rowHeader)
 
@@ -110,9 +110,12 @@ def processWodData(foldername, filename):
 
             decodedPacket = ax25decode(i)
 
+            if (decodedPacket.fcs != decodedPacket.calculatedFcs):
+                continue
+
             wod = WodPacket.from_buffer_copy(decodedPacket.data)
 
-            row = [wod.year, wod.month, wod.day. wod.hours, wod.minutes, wod.seconds, wod.rail_3v3_voltage, wod.rail_3v3_current_ch1, wod.rail_12v_current_ch2,
+            row = [wod.year, wod.month, wod.day, wod.hours, wod.minutes, wod.seconds, wod.rail_3v3_voltage, wod.rail_3v3_current_ch1, wod.rail_12v_current_ch2,
                    wod.rail_5v_voltage, wod.rail_5v_current_ch1, wod.rail_5v_current_ch2, wod.rail_6v_voltage, wod.rail_6v_current_ch1, wod.rail_12v_voltage,
                    wod.rail_12v_current_ch1, wod.rail_12v_current_ch2, wod.mppt1_voltage, wod.mppt1_current, wod.mppt2_voltage, wod.mppt2_current,
                    wod.battery_voltage, wod.battery_current, wod.battery_temp, wod.mcu_temp, wod.roll, wod.pitch, wod.yaw, wod.omega_x, wod.omega_y, wod.omega_z,
@@ -131,6 +134,7 @@ def plotWodData(csv_path, save_folder):
 
     df = pd.read_csv(csv_path, skiprows=3)  # skip header rows
 
+    
     df['UTC_Time'] = pd.to_datetime(
         {
             'year': df['Year'],
@@ -140,7 +144,7 @@ def plotWodData(csv_path, save_folder):
             'minute': df['Minutes'],
             'second': df['Seconds']
         },
-        utc=True
+        utc=True,
     )
     time = df['UTC_Time']
 
