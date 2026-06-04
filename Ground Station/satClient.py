@@ -1,6 +1,6 @@
 import socket
-from enum import Enum
 from ax25 import *
+from fileUplink import *
 
 SAT_IP = "192.168.1.1"
 SAT_PORT = 4210
@@ -11,6 +11,7 @@ WOD_DOWNLINK = 0
 SCI_DOWNLINK = 1
 CLEAR_WOD = 2
 SEND_PARAMS = 3
+TEST_OVERRIDE = 4
 
 
 class satClient:
@@ -58,6 +59,7 @@ class satClient:
             print("INFORMATION FIELD:", decodedPacket.data.decode('utf-8'))
             print("FCS:", decodedPacket.fcs.hex(' '))
 
+
     def wodDownlink(self):
         # SEND REQUEST PACKET
         request = WOD_DOWNLINK.to_bytes(1, byteorder='big')
@@ -73,6 +75,7 @@ class satClient:
                     break
                 f.write(rxData)
 
+
     def sciDownlink(self):
         # SEND REQUEST PACKET
         request = SCI_DOWNLINK.to_bytes(1, byteorder='big')
@@ -87,6 +90,36 @@ class satClient:
                     print("All data recieved from Satellite, begin processing")
                     break
                 f.write(rxData)
+
+
+    def sendParams(self):
+        # SEND REQUEST PACKET
+        print("Sending experiment uplink request")
+        request = SEND_PARAMS.to_bytes(1, byteorder='big')
+        msg = ax25encode(request, msgType='science')
+        self.sock.sendall(msg)
+
+        # open a file and serialise the data
+        serialisedFile = load_settings(EXPERIMENT_SETTINGS_PATH)
+        packetsToSend = make_packets(serialisedFile)
+
+        # send the file info packet
+        if not (send_header(packetsToSend, self.sock)):
+            return False
+
+        # loop and send the remaining packets
+        if not (send_packets(packetsToSend, self.sock)):
+            return False
+        
+    
+    def testOverride(self, device:int):
+        # SEND OVERRIDE REQUEST PACKET
+        request = TEST_OVERRIDE.to_bytes(1, byteorder='big')
+        msg = ax25encode(request, msgType='science')
+        self.sock.sendall(msg)
+        override = device.to_bytes(1, byteorder='big')
+        msg = ax25encode(override, msgType='science')
+        self.sock.sendall(msg)
 
 
 

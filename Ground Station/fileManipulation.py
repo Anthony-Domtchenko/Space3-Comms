@@ -2,8 +2,19 @@ from ax25 import *
 from wod_downlink_struct import *
 import csv
 import os
+import struct
 import pandas as pd
 import matplotlib.pyplot as plt
+import cv2 as cv
+
+
+# Results file binary schema (must match serialiseResults() in obcMessageHandler.cpp)
+NUM_SERVOS          = 6
+CAM_W, CAM_H        = 640, 480
+BYTES_PER_HISTOGRAM = CAM_W * CAM_H // 8  # 38400
+RESULT_TIMESTEPS    = 150
+HIST_ROWS, HIST_BYTES = 150, 38_400
+
 
 # Function breaks up a file of buffered data and returns a list of byte arrays where each entry is a RAW ax25 packet in received order
 def extract_frames(raw_data: bytes, frame_char: bytes, escape_char: bytes):
@@ -173,6 +184,106 @@ def plotWodData(csv_path, save_folder):
         plt.savefig(os.path.join(save_folder, f'{group_name.replace(" ", "_")}.png'))
         plt.close()  # Close the figure to free memory
 
+
+
+# Coverts Raw SCI Data into a csv with a the results histogram
+def processSciData(foldername, filename):
+
+    os.makedirs(foldername, exist_ok=True)
+    save_path = os.path.join(foldername, filename)
+
+    rawByteStream = b''
+
+    with open('rawData.txt', "rb") as f_in, open(save_path, 'w', newline='', encoding='utf-8') as f_out:
+        # Split raw data into AX25 packets by flag delimeters
+        content = f_in.read()
+        delimiter = b'\x7E'
+        escape = b'\x7d'
+        ax25Chunks = extract_frames(content, delimiter, escape)
+
+        # extract the data from each ax25 packet ignoring the first row which cntains the file info
+        firstPacketFlag = 0
+        for i in ax25Chunks:
+            if (firstPacketFlag == 0):
+                firstPacketFlag += 1
+                continue
+
+            decodedPacket = ax25decode(i)
+            index = int.from_bytes(decodedPacket.data[0:2], byteorder='little')
+            data = decodedPacket.data[2:]       # remove the index from the data
+
+            if (decodedPacket.fcs != decodedPacket.calculatedFcs):
+                print(f"packet {index} is corrupted, appending zeros")
+                rawByteStream += bytes(len(data))
+                continue
+            else:
+                rawByteStream += data
+
+    print(f"Received {len(rawByteStream)} bytes total. Decoding...")
+    output_csv_path = f"./{foldername}/{filename}"
+    decode_results(rawByteStream, output_csv_path)
+
+
+
+def decode_results(stream: bytes, output_csv_path: str):
+    """
+    Decode the binary results stream back to CSV format matching results.csv.
+
+    Binary schema (must match serialiseResults() in obcMessageHandler.cpp):
+      150 x 6 floats  — servo angles (rows 0-149)
+      150 x 3 floats  — camera position (rows 150-299)
+      150 x 3 floats  — camera attitude (rows 300-449)
+      150 x 38400 bytes — event histogram as packed bits (rows 450-599, hex strings)
+    """
+    offset = 0
+    rows = []
+
+    def read_float() -> float:
+        nonlocal offset
+        val = struct.unpack_from('<f', stream, offset)[0]
+        offset += 4
+        return val
+
+    # Servo angles: 150 rows x 6 floats
+    for _ in range(RESULT_TIMESTEPS):
+        row = [f"{read_float():.6f}" for _ in range(NUM_SERVOS)]
+        rows.append(row)
+
+    # Camera position: 150 rows x 3 floats
+    for _ in range(RESULT_TIMESTEPS):
+        row = [f"{read_float():.6f}" for _ in range(3)]
+        rows.append(row)
+
+    # Camera attitude: 150 rows x 3 floats
+    for _ in range(RESULT_TIMESTEPS):
+        row = [f"{read_float():.6f}" for _ in range(3)]
+        rows.append(row)
+
+    # Histogram: 150 rows x 38400 bytes as hex string
+    for _ in range(RESULT_TIMESTEPS):
+        chunk = stream[offset : offset + BYTES_PER_HISTOGRAM]
+        offset += BYTES_PER_HISTOGRAM
+        rows.append([chunk.hex()])
+
+    with open(output_csv_path, 'w', newline='') as f:
+        csv.writer(f).writerows(rows)
+
+    print(f"Decoded results written to '{output_csv_path}' ({len(rows)} rows)")
+
+
+
+def save_histograms(csv_path, save_folder):
+
+    os.makedirs(save_folder, exist_ok=True)
+
+    df = pd.read_csv(csv_path, skiprows= RESULT_TIMESTEPS*3, header=None)
+
+    # Convert histogram data to image for visualisation
+    # idk what the histograms are lol
+
+
+
+        
 
 
 def deleteRawDataFile():

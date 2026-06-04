@@ -8,7 +8,8 @@ class State(Enum):
     SCI_DOWNLINK = 3
     CLEAR_WOD = 4
     SEND_PARAMS = 5
-    EXIT = 6
+    TEST_OVERRIDE = 6
+    EXIT = 7
 
 
 # Handles the initial user request for the gorund station task to perform
@@ -21,6 +22,7 @@ def taskRequest():
         "SCI DOWNLINK\n"
         "CLEAR WOD\n"
         "SEND PARAMS\n"
+        "TEST OVERRIDE\n"
         "EXIT\n")
 
     if (request == "TEST PING"):
@@ -33,6 +35,8 @@ def taskRequest():
         nextState = State.CLEAR_WOD
     elif(request == "SEND PARAMS"):
         nextState = State.SEND_PARAMS
+    elif(request == "TEST OVERRIDE"):
+        nextState = State.TEST_OVERRIDE
     elif(request == "EXIT"):
         nextState = State.EXIT
     else:
@@ -40,3 +44,35 @@ def taskRequest():
         nextState = State.IDLE
 
     return nextState
+
+
+def getOverride():
+    device = input("What device would you like to test?\n"
+                   "X RW\n"
+                   "Y RW\n"
+                   "Z RW\n"
+                   "X MAG\n"
+                   "Y MAG\n"
+                   "Z MAG\n"
+                   "PAYLOAD\n"
+                   "CAMERA\n")
+    
+    if (device == "X RW"):
+        return 1
+    elif (device == "Y RW"):
+        return 2
+    elif (device == "z RW"):
+        return 3
+    elif (device == "X MAG"):
+        return 4
+    elif (device == "Y MAG"):
+        return 5
+    elif (device == "Z MAG"):
+        return 6
+    elif (device == "PAYLOAD"):
+        return 7
+    elif (device == "CAMERA"):
+        return 8
+    else:
+        print("Invalid input")
+        return -1

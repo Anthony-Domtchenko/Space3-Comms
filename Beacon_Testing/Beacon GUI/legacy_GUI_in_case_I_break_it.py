@@ -5,30 +5,44 @@ class TelemetryGUI:
         self.root = root
         self.data_queue = data_queue
 
-        root.title("CubeSat Telemetry")
-        root.geometry("1200x900")
+        root.title("CubeSat Ground Station")
+        root.geometry("1400x1000")
 
-        ##################################################
+        #################################################
         # Statistics
-        ##################################################
+        #################################################
 
         self.packet_count = 0
 
-        ##################################################
+        #################################################
         # History Buffers
-        ##################################################
+        #################################################
 
         self.sample_count = 0
 
         self.sample_history = deque(maxlen=100)
 
+        # Roll/Pitch/Yaw
+
         self.roll_history = deque(maxlen=100)
         self.pitch_history = deque(maxlen=100)
         self.yaw_history = deque(maxlen=100)
 
-        ##################################################
-        # Frames
-        ##################################################
+        # Omega
+
+        self.omega_x_history = deque(maxlen=100)
+        self.omega_y_history = deque(maxlen=100)
+        self.omega_z_history = deque(maxlen=100)
+
+        # Reaction Wheels
+
+        self.rw_x_history = deque(maxlen=100)
+        self.rw_y_history = deque(maxlen=100)
+        self.rw_z_history = deque(maxlen=100)
+
+        #################################################
+        # STATUS BAR
+        #################################################
 
         self.status_frame = tk.Frame(
             root,
@@ -41,32 +55,6 @@ class TelemetryGUI:
             padx=5,
             pady=5
         )
-
-        self.tree_frame = tk.Frame(root)
-
-        self.tree_frame.pack(
-            fill="both",
-            expand=True,
-            padx=5,
-            pady=5
-        )
-
-        self.plot_frame = tk.Frame(
-            root,
-            relief="groove",
-            borderwidth=2
-        )
-
-        self.plot_frame.pack(
-            fill="both",
-            expand=False,
-            padx=5,
-            pady=5
-        )
-
-        ##################################################
-        # Status Bar
-        ##################################################
 
         self.connection_var = tk.StringVar(
             value="Disconnected"
@@ -95,12 +83,47 @@ class TelemetryGUI:
             textvariable=self.last_packet_var
         ).pack(side="left", padx=10)
 
-        ##################################################
-        # Treeview
-        ##################################################
+        #################################################
+        # NOTEBOOK
+        #################################################
+
+        self.notebook = ttk.Notebook(root)
+
+        self.notebook.pack(
+            fill="both",
+            expand=True,
+            padx=5,
+            pady=5
+        )
+
+        #################################################
+        # TELEMETRY TAB
+        #################################################
+
+        self.telemetry_tab = ttk.Frame(
+            self.notebook
+        )
+
+        self.notebook.add(
+            self.telemetry_tab,
+            text="Telemetry"
+        )
+
+        #################################################
+        # TREEVIEW + SCROLLBAR
+        #################################################
+
+        tree_container = tk.Frame(
+            self.telemetry_tab
+        )
+
+        tree_container.pack(
+            fill="both",
+            expand=True
+        )
 
         self.tree = ttk.Treeview(
-            self.tree_frame,
+            tree_container,
             columns=("value",),
             show="tree headings"
         )
@@ -125,41 +148,62 @@ class TelemetryGUI:
             width=200
         )
 
+        scrollbar = ttk.Scrollbar(
+            tree_container,
+            orient="vertical",
+            command=self.tree.yview
+        )
+
+        self.tree.configure(
+            yscrollcommand=scrollbar.set
+        )
+
+        scrollbar.pack(
+            side="right",
+            fill="y"
+        )
+
         self.tree.pack(
+            side="left",
             fill="both",
             expand=True
         )
 
         self.build_tree()
 
-        ##################################################
-        # Plot
-        ##################################################
+        #################################################
+        # ADCS TAB
+        #################################################
+
+        self.adcs_tab = ttk.Frame(
+            self.notebook
+        )
+
+        self.notebook.add(
+            self.adcs_tab,
+            text="ADCS"
+        )
+
+        #################################################
+        # ADCS FIGURE
+        #################################################
 
         self.figure = Figure(
-            figsize=(10, 3),
+            figsize=(12, 10),
             dpi=100
         )
 
-        self.ax = self.figure.add_subplot(111)
+        self.roll_ax = self.figure.add_subplot(511)
+        self.pitch_ax = self.figure.add_subplot(512)
+        self.yaw_ax = self.figure.add_subplot(513)
+        self.omega_ax = self.figure.add_subplot(514)
+        self.rw_ax = self.figure.add_subplot(515)
 
-        self.ax.set_title(
-            "Roll / Pitch / Yaw History"
-        )
-
-        self.ax.set_xlabel(
-            "Packet Number"
-        )
-
-        self.ax.set_ylabel(
-            "Degrees"
-        )
-
-        self.ax.grid(True)
+        self.figure.tight_layout()
 
         self.canvas = FigureCanvasTkAgg(
             self.figure,
-            master=self.plot_frame
+            master=self.adcs_tab
         )
 
         self.canvas.get_tk_widget().pack(
@@ -167,15 +211,15 @@ class TelemetryGUI:
             expand=True
         )
 
-        ##################################################
-        # Start Update Loop
-        ##################################################
+        #################################################
+        # START GUI UPDATE LOOP
+        #################################################
 
         self.update_gui()
 
-    ######################################################
-    # Tree Construction
-    ######################################################
+    #####################################################
+    # TREE CREATION
+    #####################################################
 
     def build_tree(self):
 
@@ -198,9 +242,9 @@ class TelemetryGUI:
                     values=("---",)
                 )
 
-    ######################################################
-    # Value Formatting
-    ######################################################
+    #####################################################
+    # VALUE FORMATTING
+    #####################################################
 
     def format_value(self, field_name, value):
 
@@ -215,17 +259,24 @@ class TelemetryGUI:
             elif "temp" in field_name:
                 return f"{value:.1f} °C"
 
-            elif field_name in ["roll", "pitch", "yaw"]:
-                return f"{value:.2f}°"
+            elif field_name in [
+                "roll",
+                "pitch",
+                "yaw"
+            ]:
+                return f"{value:.2f} rad"
 
             elif "omega" in field_name:
                 return f"{value:.2f} RPM"
 
             elif "rw_speed" in field_name:
                 return f"{value:.2f} RPS"
+            
+            elif "field" in field_name:
+                return f"{value:.2f} uT"
 
-            elif field_name == "detumble_scale":
-                return f"{value:.3f}"
+            elif "Faults" in field_name:
+                return f"0x{value:04X}"
 
             elif field_name in [
                 "eFuse_states",
@@ -233,22 +284,22 @@ class TelemetryGUI:
             ]:
                 return f"0x{value:02X}"
 
-            elif "Faults" in field_name:
-                return f"0x{value:04X}"
-
-            else:
-                return str(value)
+            return str(value)
 
         except Exception:
             return str(value)
 
-    ######################################################
-    # Update Telemetry
-    ######################################################
+    #####################################################
+    # UPDATE TELEMETRY VALUES
+    #####################################################
 
     def update_rows(self, wod):
 
         self.packet_count += 1
+
+        self.connection_var.set(
+            "Connected"
+        )
 
         self.packet_var.set(
             f"Packets: {self.packet_count}"
@@ -256,10 +307,6 @@ class TelemetryGUI:
 
         self.last_packet_var.set(
             f"Last Packet: {wod.utc_time}"
-        )
-
-        self.connection_var.set(
-            "Connected"
         )
 
         for field_list in TELEMETRY_GROUPS.values():
@@ -273,26 +320,22 @@ class TelemetryGUI:
                         field_name
                     )
 
-                    display_value = self.format_value(
-                        field_name,
-                        value
-                    )
-
                     self.tree.item(
                         field_name,
-                        values=(display_value,)
+                        values=(
+                            self.format_value(
+                                field_name,
+                                value
+                            ),
+                        )
                     )
 
                 except AttributeError:
+                    pass
 
-                    self.tree.item(
-                        field_name,
-                        values=("N/A",)
-                    )
-
-        ##################################################
-        # Update History Buffers
-        ##################################################
+        #
+        # Store history
+        #
 
         self.sample_count += 1
 
@@ -300,65 +343,146 @@ class TelemetryGUI:
             self.sample_count
         )
 
-        self.roll_history.append(
-            wod.roll
-        )
+        self.roll_history.append(wod.roll)
+        self.pitch_history.append(wod.pitch)
+        self.yaw_history.append(wod.yaw)
 
-        self.pitch_history.append(
-            wod.pitch
-        )
+        self.omega_x_history.append(wod.omega_x)
+        self.omega_y_history.append(wod.omega_y)
+        self.omega_z_history.append(wod.omega_z)
 
-        self.yaw_history.append(
-            wod.yaw
-        )
+        self.rw_x_history.append(wod.x_rw_speed)
+        self.rw_y_history.append(wod.y_rw_speed)
+        self.rw_z_history.append(wod.z_rw_speed)
 
-    ######################################################
-    # Update Plot
-    ######################################################
+    #####################################################
+    # UPDATE PLOTS
+    #####################################################
 
     def update_plot(self):
 
-        self.ax.clear()
+        #
+        # Roll
+        #
 
-        self.ax.plot(
+        self.roll_ax.clear()
+
+        self.roll_ax.plot(
             self.sample_history,
-            self.roll_history,
-            label="Roll"
+            self.roll_history
         )
 
-        self.ax.plot(
+        self.roll_ax.set_title(
+            "Roll (Rad)"
+        )
+
+        self.roll_ax.grid(True)
+
+        #
+        # Pitch
+        #
+
+        self.pitch_ax.clear()
+
+        self.pitch_ax.plot(
             self.sample_history,
-            self.pitch_history,
-            label="Pitch"
+            self.pitch_history
         )
 
-        self.ax.plot(
+        self.pitch_ax.set_title(
+            "Pitch (Rad)"
+        )
+
+        self.pitch_ax.grid(True)
+
+        #
+        # Yaw
+        #
+
+        self.yaw_ax.clear()
+
+        self.yaw_ax.plot(
             self.sample_history,
-            self.yaw_history,
-            label="Yaw"
+            self.yaw_history
         )
 
-        self.ax.set_title(
-            "Roll / Pitch / Yaw History"
+        self.yaw_ax.set_title(
+            "Yaw (Rad)"
         )
 
-        self.ax.set_xlabel(
-            "Packet Number"
+        self.yaw_ax.grid(True)
+
+        #
+        # Omega XYZ
+        #
+
+        self.omega_ax.clear()
+
+        self.omega_ax.plot(
+            self.sample_history,
+            self.omega_x_history,
+            label="X"
         )
 
-        self.ax.set_ylabel(
-            "Degrees"
+        self.omega_ax.plot(
+            self.sample_history,
+            self.omega_y_history,
+            label="Y"
         )
 
-        self.ax.grid(True)
+        self.omega_ax.plot(
+            self.sample_history,
+            self.omega_z_history,
+            label="Z"
+        )
 
-        self.ax.legend()
+        self.omega_ax.set_title(
+            "Body Rates (RPM)"
+        )
+
+        self.omega_ax.legend()
+
+        self.omega_ax.grid(True)
+
+        #
+        # Reaction Wheels
+        #
+
+        self.rw_ax.clear()
+
+        self.rw_ax.plot(
+            self.sample_history,
+            self.rw_x_history,
+            label="RW X"
+        )
+
+        self.rw_ax.plot(
+            self.sample_history,
+            self.rw_y_history,
+            label="RW Y"
+        )
+
+        self.rw_ax.plot(
+            self.sample_history,
+            self.rw_z_history,
+            label="RW Z"
+        )
+
+        self.rw_ax.set_title(
+            "Reaction Wheel Speed (RPS)"
+        )
+
+        self.rw_ax.legend()
+
+        self.rw_ax.grid(True)
+
+        self.figure.tight_layout()
 
         self.canvas.draw()
 
-    ######################################################
-    # Main GUI Update Loop
-    ######################################################
+    #####################################################
+    # MAIN UPDATE LOOP
+    #####################################################
 
     def update_gui(self):
 

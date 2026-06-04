@@ -44,6 +44,8 @@ while(1):
                 client.sciDownlink()
             client.closeClient()
             processAx25Data(SCI_FOLDER, 'SCIAx25data.csv')
+            processSciData(SCI_FOLDER, 'SCIAx25data.csv')
+            csv_relative_path = f"./{SCI_FOLDER}/SCIAx25data.csv"  # This is a stupid line of code
             #deleteRawDataFile()
 
             nextState = State.IDLE
@@ -53,7 +55,24 @@ while(1):
             nextState = State.IDLE
 
         case State.SEND_PARAMS:
-            print("SEND PARAMS OH YEAH\n")
+            client = satClient()
+            if (client.connectToSat()):
+                client.sendParams()
+            client.closeClient()
+
+            nextState = State.IDLE
+
+        case State.TEST_OVERRIDE:
+            device = getOverride()
+            if (device == -1):
+                nextState = State.IDLE
+                continue
+            else:
+                client = satClient()
+                if (client.connectToSat()):
+                    client.testOverride(device)
+                client.closeClient()
+
             nextState = State.IDLE
 
         case State.EXIT:

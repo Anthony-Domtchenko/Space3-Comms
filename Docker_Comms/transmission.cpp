@@ -5,6 +5,9 @@
 
 std::vector<char> recieveAx25Packet(WiFiClient* client){
   std::vector<char> rawData;
+  while (!client->available()) {
+    // block untill byte available
+  }
   char byte = client->read();
   char escapeFlag = 0;
 
@@ -22,12 +25,16 @@ std::vector<char> recieveAx25Packet(WiFiClient* client){
         return error;
       }
 
+      while (!client->available()) {
+        // block untill byte available
+      }
       byte = client->read();
       if (escapeFlag == 0 && byte == ESCAPE) {
         escapeFlag = 1;
         continue;
       }
       else if (escapeFlag == 0 && byte == FLAG) {
+        // reached the end of the packet
         rawData.push_back(byte);
         break;
       }

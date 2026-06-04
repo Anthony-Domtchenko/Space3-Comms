@@ -17,13 +17,24 @@
 
 
 //-------------DEFINES------------------------------------------------------------------------
-#define WOD_INFO_ID     0x66
-#define WOD_REQUEST_ID  0x67
+#define FILE_INFO_ID    0x66
 #define COMMS_ACK_ID    0x68
-#define WOD_RECORD_ID   0x69
 #define END_TRANSFER_ID 0x70
 
-#define UART_WAIT_TIMEOUT_US 2000000
+#define WOD_REQUEST_ID  0x67
+#define WOD_RECORD_ID   0x69
+
+#define SCI_REQUEST_ID  0x11    // Check and update this
+#define SCI_CHUNK_ID    0x11    // Check and update this
+
+#define SEND_PARAMS_REQUEST_ID  0x11  // Check and update this
+#define SEND_PARAMS_CHUNK_ID    0x11  // Check and update this
+
+#define TEST_OVERRIDE_ID        0x11  // Check and update this
+
+#define UART_WAIT_TIMEOUT_US  2000000
+#define ACK_WAIT_TIMEOUT_US   2000
+#define MAX_ACK_RETRIES       10
 
 
 //-------------Typedefs and Enums-------------------------------------------------------------
@@ -32,7 +43,8 @@ typedef enum{
   LINK_WOD_DOWNLINK,
   LINK_SCI_DOWNLINK,
   LINK_CLEAR_WOD,
-  LINK_SEND_PARAMS
+  LINK_SEND_PARAMS,
+  TEST_OVERRIDE
 }LinkTask;
 
 // Serial2 is reserved for OBC-COMMS UART connection
@@ -48,13 +60,19 @@ LinkTask getTask(WiFiClient* client);
 
 //Handlers for each LinkTask
 bool handleWodDownlink(WiFiClient* client);
-void sendWodRequest(void);
-bool getSendFileInfo(WiFiClient* client);
+bool handleSciDownlink(WiFiClient* client);
 
-void handleSciDownlink(WiFiClient* client);
+bool handleParamsUplink(WiFiClient* client);
+bool uplinkFileInfo(WiFiClient* client);
 
-bool waitUART(void);  // timeout occurs if program waits longer than UART_WAIT_TIMEOUT_US mircroseconds
+bool handleTestOverride(WiFiClient* client);
+
+void sendOBCRequest(uint8_t requestID);
+bool waitUART(void);
 void sendObcAck(void);
+bool getSendFileInfo(WiFiClient* client, bool wodTrue);
+bool getAck(void);
+void sendEOF(void);
 
 
 #endif
