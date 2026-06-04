@@ -57,6 +57,14 @@ class BeaconPacket(Structure):
         ('x_mag_current', c_float),
         ('y_mag_current', c_float),
         ('z_mag_current', c_float),
+
+        ('x_mag_field_sense', c_float),
+        ('y_mag_field_sense', c_float),
+        ('z_mag_field_sense', c_float),
+        ('x_mag_field_filt', c_float),
+        ('y_mag_field_filt', c_float),
+        ('z_mag_field_filt', c_float),
+
         ('detumble_scale', c_float),
 
         # Subsystem Faults

@@ -57,8 +57,17 @@ typedef struct __attribute__((packed)) {
     float    x_mag_current;
     float    y_mag_current;
     float    z_mag_current;
+
+    float    x_mag_field_sense;
+    float    y_mag_field_sense;
+    float    z_mag_field_sense;
+    float    x_mag_field_filt;
+    float    y_mag_field_filt;
+    float    z_mag_field_filt;
+
     float    detumble_scale;
-    
+
+    // Faults 
     uint16_t EPS_Faults;
     uint16_t OBC_Faults;
     uint16_t ADCS_Faults;

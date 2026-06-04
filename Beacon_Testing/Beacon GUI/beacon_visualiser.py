@@ -84,6 +84,13 @@ TELEMETRY_GROUPS = {
         "y_mag_current",
         "z_mag_current",
 
+        "x_mag_field_sense",
+        "y_mag_field_sense",
+        "z_mag_field_sense",
+        "x_mag_field_filt",
+        "y_mag_field_filt",
+        "z_mag_field_filt",
+
         "detumble_scale"
     ],
 
@@ -517,6 +524,9 @@ class TelemetryGUI:
 
             elif "rw_speed" in field_name:
                 return f"{value:.2f} RPS"
+            
+            elif "field" in field_name:
+                return f"{value:.2f} uT"
 
             elif "Faults" in field_name:
                 return f"0x{value:04X}"
