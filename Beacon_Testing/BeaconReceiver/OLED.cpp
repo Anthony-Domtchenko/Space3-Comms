@@ -49,7 +49,7 @@ void newRxScreen(COMMS_BeaconData_t& receivedWod, int rssi) {
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   x = display.width()/2;
   y = 38;   // 16 as that is height of header
-  sprintf(str,"RSSI: %d    Bat Volt: %d", rssi, receivedWod.battery_voltage);
+  sprintf(str,"RSSI: %d    Bat Volt: %.2f", rssi, float(receivedWod.battery_voltage) * 0.001);
   display.drawString(x, y, str);
 
   display.setFont(ArialMT_Plain_10);

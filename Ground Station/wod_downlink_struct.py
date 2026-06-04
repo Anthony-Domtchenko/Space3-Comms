@@ -27,10 +27,10 @@ class WodPacket(Structure):
         ('raw_12v_current_ch1', c_uint16),
         ('raw_12v_current_ch2', c_uint16),
 
-        ('mppt1_voltage', c_uint16),
-        ('mppt1_current', c_uint16),
-        ('mppt2_voltage', c_uint16),
-        ('mppt2_current', c_uint16),
+        ('raw_mppt1_voltage', c_uint16),
+        ('raw_mppt1_current', c_uint16),
+        ('raw_mppt2_voltage', c_uint16),
+        ('raw_mppt2_current', c_uint16),
 
         ('raw_battery_voltage', c_uint16),
         ('raw_battery_current', c_uint16),
@@ -133,3 +133,19 @@ class WodPacket(Structure):
     @property
     def z_rw_speed(self):
         return self.raw_z_rw_speed / (2.0 * math.pi)    # converts rad/s to rps
+    
+    @property
+    def mppt1_voltage(self):
+        return self.raw_mppt1_voltage * 0.001
+    
+    @property
+    def mppt2_voltage(self):
+        return self.raw_mppt2_voltage * 0.001
+    
+    @property
+    def mppt1_current(self):
+        return self.raw_mppt1_current * 0.001
+    
+    @property
+    def mppt2_current(self):
+        return self.raw_mppt2_current * 0.001

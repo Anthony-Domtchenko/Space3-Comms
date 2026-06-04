@@ -79,7 +79,7 @@ class satClient:
         msg = ax25encode(request, msgType='science')
         self.sock.sendall(msg)
 
-        # RECIEVE AND STORE RAW WOD PACKETS
+        # RECIEVE AND STORE RAW SCI PACKETS
         with open("rawData.txt", "wb") as f:
             while True:
                 rxData = self.sock.recv(1024)

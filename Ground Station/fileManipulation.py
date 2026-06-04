@@ -59,7 +59,7 @@ def processAx25Data(foldername, filename):
             row = [decodedPacket.destAddr, decodedPacket.destSSID, decodedPacket.sourAddr, decodedPacket.sourSSID, decodedPacket.data.hex(), decodedPacket.fcs.hex(), decodedPacket.calculatedFcs.hex()]
             writer.writerow(row)
 
-    print("Data Processing Complete and Stored to CSV")
+    print("Raw Data Processing Complete and Stored to CSV")
 
 
 
@@ -123,7 +123,7 @@ def processWodData(foldername, filename):
                    wod.OBC_Faults, wod.ADCS_Faults, wod.Payload_Faults, wod.Comms_Faults]
             writer.writerow(row)
 
-    print("Data Processing Complete and Stored to CSV")
+    print("WOD Data Processing Complete and Stored to CSV")
 
 
 
