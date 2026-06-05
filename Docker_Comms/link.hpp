@@ -24,16 +24,16 @@
 #define WOD_REQUEST_ID  0x67
 #define WOD_RECORD_ID   0x69
 
-#define SCI_REQUEST_ID  0x11    // Check and update this
-#define SCI_CHUNK_ID    0x11    // Check and update this
+#define SCI_REQUEST_ID  0x14  
+#define SCI_CHUNK_ID    0x69
 
-#define SEND_PARAMS_REQUEST_ID  0x11  // Check and update this
-#define SEND_PARAMS_CHUNK_ID    0x11  // Check and update this
+#define SEND_PARAMS_REQUEST_ID  0x13
+#define SEND_PARAMS_CHUNK_ID    0x69
 
 #define TEST_OVERRIDE_ID        0x11  // Check and update this
 
 #define UART_WAIT_TIMEOUT_US  2000000
-#define ACK_WAIT_TIMEOUT_US   2000
+#define ACK_WAIT_TIMEOUT_US   20000
 #define MAX_ACK_RETRIES       10
 
 

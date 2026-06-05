@@ -3,11 +3,11 @@ import csv
 import struct
 import socket
 
-EXPERIMENT_SETTINGS_PATH = "./Uplink/experiment_setting.csv"
-MAX_DATA_PER_PACKET = 252
+EXPERIMENT_SETTINGS_PATH = "./Uplink/experiment_settings.csv"
+MAX_DATA_PER_PACKET = 180
 RESULT_TIMESTEPS = 150
 
-UPLINK_FILEID = 1           # Need to check what this is later
+UPLINK_FILEID = 7
 
 
 
@@ -64,7 +64,7 @@ def make_packets(data: bytes) -> list:
     """Split binary data into packet payloads, each prefixed with a 2-byte little-endian index."""
     packets = []
     for i in range(0, len(data), MAX_DATA_PER_PACKET):
-        index   = struct.pack('<H', len(packets))
+        index   = struct.pack('>H', len(packets))
         payload = data[i : i + MAX_DATA_PER_PACKET]
         packets.append(index + payload)
     return packets
@@ -73,7 +73,7 @@ def make_packets(data: bytes) -> list:
 def send_header(packets: bytes, sock: socket):
     try:
         # Generate file information
-        fileId = 1
+        fileId = UPLINK_FILEID
         chunk_size = len(packets[0])
         num_chunks = len(packets)
 
@@ -91,14 +91,15 @@ def send_header(packets: bytes, sock: socket):
     
 
 def send_packets(packets: bytes, sock: socket):
-    for i in range(packets):
+    for i in range(len(packets)):
         try:
             # sendall() will raise an exception if the client disconnected
             encodedPacket = ax25encode(packets[i], msgType='science')
             sock.sendall(encodedPacket)
             print("Packet sent successfully.")
-            return True
             
         except (BrokenPipeError, ConnectionResetError, socket.error) as e:
             print(f"Client disconnected or connection lost: {e}")
             return False
+        
+    return True

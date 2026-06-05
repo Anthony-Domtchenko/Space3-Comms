@@ -5,6 +5,7 @@ from fileManipulation import *
 
 WOD_FOLDER = 'WOD Data'
 SCI_FOLDER = 'Science Data'
+HIST_FOLDER = 'Histograms'
 
 
 currState = State.IDLE
@@ -46,6 +47,7 @@ while(1):
             processAx25Data(SCI_FOLDER, 'SCIAx25data.csv')
             processSciData(SCI_FOLDER, 'SCIAx25data.csv')
             csv_relative_path = f"./{SCI_FOLDER}/SCIAx25data.csv"  # This is a stupid line of code
+            save_histograms(csv_relative_path, HIST_FOLDER)
             #deleteRawDataFile()
 
             nextState = State.IDLE

@@ -6,6 +6,7 @@ import struct
 import pandas as pd
 import matplotlib.pyplot as plt
 import cv2 as cv
+import numpy as np
 
 
 # Results file binary schema (must match serialiseResults() in obcMessageHandler.cpp)
@@ -203,13 +204,21 @@ def processSciData(foldername, filename):
 
         # extract the data from each ax25 packet ignoring the first row which cntains the file info
         firstPacketFlag = 0
+        prevChunkIndex = 0
         for i in ax25Chunks:
             if (firstPacketFlag == 0):
                 firstPacketFlag += 1
                 continue
 
             decodedPacket = ax25decode(i)
+            
             index = int.from_bytes(decodedPacket.data[0:2], byteorder='little')
+            if (index == prevChunkIndex):
+                print("duplicate packet, dropping chunk...")
+                continue
+            prevChunkIndex = index
+
+
             data = decodedPacket.data[2:]       # remove the index from the data
 
             if (decodedPacket.fcs != decodedPacket.calculatedFcs):
@@ -274,12 +283,55 @@ def decode_results(stream: bytes, output_csv_path: str):
 
 def save_histograms(csv_path, save_folder):
 
+    IMG_H, IMG_W = 480, 640
+    BLOCK_ROWS = 150
+
+    servo_angles = []   # (150, 6) per experiment
+    poses_t = []        # (150, 3) per experiment
+    poses_r = []        # (150, 3) per experiment
+    hists = []          # (480, 640) uint8 per experiment
+
+    with open(csv_path, "r", newline="") as f:
+        rows = [row for row in csv.reader(f) if row]
+
+    i = 0
+    while i < len(rows):
+        # 150 rows: servo angles
+        angles_block = np.array([[float(v) for v in rows[i + j]] for j in range(BLOCK_ROWS)])
+        poses_t.append(angles_block)        
+        i += BLOCK_ROWS
+
+        # 150 rows: position (tx, ty, tz)
+        pos_block = np.array([[float(v) for v in rows[i + j]] for j in range(BLOCK_ROWS)])
+        poses_t.append(pos_block)
+        i += BLOCK_ROWS
+
+        # 150 rows: attitude (rx, ry, rz)
+        att_block = np.array([[float(v) for v in rows[i + j]] for j in range(BLOCK_ROWS)])
+        poses_r.append(att_block)
+        i += BLOCK_ROWS
+
+        # 150 rows: one hex string per row, unpack bits back to binary image
+        exp_hists = []
+        for j in range(BLOCK_ROWS):
+            if i + j >= len(rows):
+                break
+            hex_str = rows[i + j][0]
+            packed = np.frombuffer(bytes.fromhex(hex_str), dtype=np.uint8)
+            bits = np.unpackbits(packed)[:IMG_H * IMG_W]
+            hist = bits.reshape(IMG_H, IMG_W).astype(np.uint8) * 255
+            exp_hists.append(hist)
+        hists.append(exp_hists)
+        i += len(exp_hists)
+
+    print(f"Loaded experiment")
+
+    # Save histogram images
     os.makedirs(save_folder, exist_ok=True)
 
-    df = pd.read_csv(csv_path, skiprows= RESULT_TIMESTEPS*3, header=None)
-
-    # Convert histogram data to image for visualisation
-    # idk what the histograms are lol
+    for exp_i, exp_hists in enumerate(hists):
+        for hist_i, hist in enumerate(exp_hists):
+            cv.imwrite(os.path.join(save_folder, f"hist_exp{exp_i:03d}_{hist_i:03d}.png"), hist)
 
 
 

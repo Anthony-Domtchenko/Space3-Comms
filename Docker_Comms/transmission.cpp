@@ -5,7 +5,7 @@
 
 std::vector<char> recieveAx25Packet(WiFiClient* client){
   std::vector<char> rawData;
-  while (!client->available()) {
+  while (!client->available() && client->connected()) {
     // block untill byte available
   }
   char byte = client->read();
@@ -25,7 +25,7 @@ std::vector<char> recieveAx25Packet(WiFiClient* client){
         return error;
       }
 
-      while (!client->available()) {
+      while (!client->available() && client->connected()) {
         // block untill byte available
       }
       byte = client->read();

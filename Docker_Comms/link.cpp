@@ -234,17 +234,10 @@ bool handleParamsUplink(WiFiClient* client) {
   // wait Ack
 
   sendOBCRequest(SEND_PARAMS_REQUEST_ID);             // Send file uplink request to OBC
-  int ackCounter = 0;
-  while(!getAck()) {                                  // wait Ack
-    if (ackCounter == MAX_ACK_RETRIES) {
-      Serial.println("Failed to recieve acknowledgement");
-      return false;
-    }
-    sendOBCRequest(SEND_PARAMS_REQUEST_ID);
-    ackCounter++;
-  }
 
-  uplinkFileInfo(client);                             // get file info from GS and send File info to OBC (also waits for ack)
+  if (!uplinkFileInfo(client)) {                         // get file info from GS and send File info to OBC (also waits for ack)                     
+    return false;
+  }  
 
   Serial.println("Sending Chunks to OBC!");
   while(client->connected() || client->available()) {   // loop through and send chunks until TCP connection is ended
@@ -252,20 +245,27 @@ bool handleParamsUplink(WiFiClient* client) {
     std::vector<char> ax25packet = recieveAx25Packet(client);
     RxAx25 receivedChunk(ax25packet);
     if (receivedChunk.fcsCompare()) {
-      Serial.println("File chunk recieved: FCS is okay");
+      Serial.println("File chunk recieved from GS: FCS is okay");
     }
     else {
+      Serial.println("File chunk recieved from GS: FCS is SHIT");
       return false;
     }
 
     // create UART msg and send to OBC
     std::vector<char> fileChunk = receivedChunk.getData();
+
+    uint8_t indexHighByte = static_cast<uint8_t>(fileChunk[0]);
+    uint8_t indexLowByte  = static_cast<uint8_t>(fileChunk[1]);
+    uint16_t index = (static_cast<uint16_t>(indexHighByte) << 8) | indexLowByte;
+
     UART_msg_t msg;
     msg.sof        = UART_SOF;
     msg.id         = SEND_PARAMS_CHUNK_ID;
     msg.length     = fileChunk.size();
     memcpy(msg.payload, fileChunk.data(), fileChunk.size());
     UART_transmit(&Serial2, &msg);
+    Serial.printf("Sending Packet to OBC, msg id: %d    length: %d    index: %d\r\n", msg.id, msg.length, index);
 
     // wait for an ack and resend if required
     int ackCounter = 0;
@@ -280,6 +280,7 @@ bool handleParamsUplink(WiFiClient* client) {
   }
 
   sendEOF();                                          // send EOF to OBC
+  int ackCounter = 0;
   while(!getAck()) {                                  // wait Ack
     if (ackCounter == MAX_ACK_RETRIES) {
       Serial.println("Failed to recieve acknowledgement for EOF");
@@ -424,11 +425,12 @@ bool getAck(void) {
     }
     if (msg.id != COMMS_ACK_ID)
     { 
-      Serial.println("Warning: Bad file info ID received from OBC");
+      Serial.println("Warning: Bad ACK ID received from OBC");
       return false;
     }
   }
   else {
+    Serial.println("ACK: No successful UART Message received");
     return false;
   }
   return true;
