@@ -13,7 +13,9 @@ void handleLink(WiFiClient* client) {
       }
 
       else if (linkTask == LINK_SCI_DOWNLINK) {
-        handleSciDownlink(client);
+        if (!handleSciDownlink(client)) {
+          Serial.println("ERROR: SCI Downlink Failed");
+        }
       }
 
       else if (linkTask == LINK_CLEAR_WOD) {
@@ -27,7 +29,9 @@ void handleLink(WiFiClient* client) {
       }
 
       else if (linkTask == TEST_OVERRIDE) {
-
+        if (!handleTestOverride(client)) {
+          Serial.println("ERROR: Test Override Failed");
+        }
       }
 
       else {
@@ -332,23 +336,41 @@ bool uplinkFileInfo(WiFiClient* client) {
 
 
 bool handleTestOverride(WiFiClient* client) {
-  std::vector<char> ax25packet = recieveAx25Packet(client);
-  RxAx25 receivedOverride(ax25packet);
-  if (receivedOverride.fcsCompare()) {
-    Serial.println("Test Override packet recieved: FCS is okay");
-  }
-  else {
-    return false;
-  }
+  while(true) {
+    std::vector<char> ax25packet = recieveAx25Packet(client);
+    RxAx25 receivedOverride(ax25packet);
+    uint8_t testDevice = receivedOverride.getData()[0];
 
-  Serial.println("Sending component override request to OBC");
-  UART_msg_t msg;
-  msg.sof        = UART_SOF;
-  msg.id         = TEST_OVERRIDE_ID;
-  msg.length     = 1;
-  msg.payload[0] = receivedOverride.getData()[0];
-  UART_transmit(&Serial2, &msg);
-  return true;
+    if (receivedOverride.fcsCompare()) {
+      Serial.println("Test Override packet recieved: FCS is okay");
+    }
+    else {
+      Serial.println("Test Override packet recieved: FCS is shit, exiting test mode");
+      testDevice = TEST_EXIT;
+    }
+
+    Serial.printf("Sending component override %d request to OBC\r\n", testDevice);
+    UART_msg_t msg;
+    msg.sof        = UART_SOF;
+    msg.id         = TEST_OVERRIDE_ID;
+    msg.length     = 1;
+    msg.payload[0] = testDevice;
+    UART_transmit(&Serial2, &msg);
+
+    int ackCounter = 0;
+    while(!getAck()) {
+      if (ackCounter == MAX_ACK_RETRIES) {
+        Serial.println("Failed to recieve acknowledgement");
+        return false;
+      }
+      UART_transmit(&Serial2, &msg);
+      ackCounter++;
+    }
+
+    if (testDevice == TEST_EXIT) {
+      break;
+    }
+  }
 }
 
 

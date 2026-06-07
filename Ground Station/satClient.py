@@ -112,11 +112,14 @@ class satClient:
             return False
         
     
-    def testOverride(self, device:int):
-        # SEND OVERRIDE REQUEST PACKET
+    def sendTestRequest(self):
         request = TEST_OVERRIDE.to_bytes(1, byteorder='big')
         msg = ax25encode(request, msgType='science')
         self.sock.sendall(msg)
+        
+    
+    def testOverride(self, device:int):
+        # SEND OVERRIDE REQUEST PACKET
         override = device.to_bytes(1, byteorder='big')
         msg = ax25encode(override, msgType='science')
         self.sock.sendall(msg)

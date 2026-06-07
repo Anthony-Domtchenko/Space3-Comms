@@ -65,17 +65,27 @@ while(1):
             nextState = State.IDLE
 
         case State.TEST_OVERRIDE:
-            device = getOverride()
-            if (device == -1):
+            # Send TEST OVERRIDE REQUEST TO SAT
+            client = satClient()
+            if (client.connectToSat()):
+                client.sendTestRequest()
+            else:
                 nextState = State.IDLE
                 continue
-            else:
-                client = satClient()
-                if (client.connectToSat()):
+            
+            device = getOverride()
+            # stay in Test mode until EXIT is called
+            while(device != 38):
+                if (device != -1):
+                    # valid device
                     client.testOverride(device)
-                client.closeClient()
-
+                device = getOverride()
+            
+            # Exit test mode
+            client.testOverride(device)
+            client.closeClient()
             nextState = State.IDLE
+
 
         case State.EXIT:
             print("Exiting...\n")

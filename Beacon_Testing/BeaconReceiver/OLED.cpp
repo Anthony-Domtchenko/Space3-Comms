@@ -19,8 +19,12 @@ void bootScreen(void) {
   display.setFont(ArialMT_Plain_24);
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   x = display.width()/2;
-  y = display.height()/2 -12;   // -12 as that is half the font height
-  sprintf(str,"DOCKER-1");
+  y = display.height()/2 -24;
+  sprintf(str,"BEACON");
+  display.drawString(x, y, str);
+  x = display.width()/2;
+  y = display.height()/2;
+  sprintf(str,"RECEIVER");
   display.drawString(x, y, str);
   display.display();
 }

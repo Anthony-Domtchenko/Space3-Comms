@@ -47,6 +47,18 @@ typedef enum{
   TEST_OVERRIDE
 }LinkTask;
 
+typedef enum{
+  TEST_X_RW = 30,
+  TEST_Y_RW,
+  TEST_Z_RW,
+  TEST_X_MAG,
+  TEST_Y_MAG,
+  TEST_Z_MAG,
+  TEST_PAYLOAD,
+  TEST_CAMERA,
+  TEST_EXIT
+}TestOverideCommands;
+
 // Serial2 is reserved for OBC-COMMS UART connection
 extern HardwareSerial Serial2;
 

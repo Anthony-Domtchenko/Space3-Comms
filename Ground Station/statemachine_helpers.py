@@ -55,24 +55,27 @@ def getOverride():
                    "Y MAG\n"
                    "Z MAG\n"
                    "PAYLOAD\n"
-                   "CAMERA\n")
+                   "CAMERA\n"
+                   "EXIT TESTING\n")
     
     if (device == "X RW"):
-        return 1
+        return 30
     elif (device == "Y RW"):
-        return 2
+        return 31
     elif (device == "z RW"):
-        return 3
+        return 32
     elif (device == "X MAG"):
-        return 4
+        return 33
     elif (device == "Y MAG"):
-        return 5
+        return 34      
     elif (device == "Z MAG"):
-        return 6
+        return 35
     elif (device == "PAYLOAD"):
-        return 7
+        return 36
     elif (device == "CAMERA"):
-        return 8
+        return 37
+    elif (device == "EXIT TESTING"):
+        return 38
     else:
         print("Invalid input")
         return -1
