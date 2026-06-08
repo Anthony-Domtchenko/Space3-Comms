@@ -73,16 +73,16 @@ while(1):
                 nextState = State.IDLE
                 continue
             
-            device = getOverride()
+            msg = getOverride()
             # stay in Test mode until EXIT is called
-            while(device != OverrideDeviceID.TEST_EXIT):
-                if (device != -1):
+            while(msg.device != OverrideDeviceID.TEST_EXIT):
+                if (msg.device != 255):
                     # valid device
-                    client.testOverride(device)
+                    client.sendTestOverride(msg)
                 device = getOverride()
             
             # Exit test mode
-            client.testOverride(device)
+            client.sendTestOverride(msg)
             client.closeClient()
             nextState = State.IDLE
 

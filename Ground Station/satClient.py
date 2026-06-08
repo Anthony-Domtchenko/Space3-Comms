@@ -1,6 +1,7 @@
 import socket
 from ax25 import *
 from fileUplink import *
+from statemachine_helpers import *
 
 SAT_IP = "192.168.1.1"
 SAT_PORT = 4210
@@ -118,10 +119,10 @@ class satClient:
         self.sock.sendall(msg)
         
     
-    def testOverride(self, device:int):
+    def sendTestOverride(self, msg:DeviceMsg):
         # SEND OVERRIDE REQUEST PACKET
-        override = device.to_bytes(1, byteorder='big')
-        msg = ax25encode(override, msgType='science')
+        txMsg = bytearray(msg)
+        msg = ax25encode(txMsg, msgType='science')
         self.sock.sendall(msg)
 
 

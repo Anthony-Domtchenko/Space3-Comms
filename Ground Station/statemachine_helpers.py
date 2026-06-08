@@ -1,4 +1,6 @@
 from enum import Enum, auto
+from ctypes import *
+import ctypes
 
 # States for the ground_station state machine
 class State(Enum):
@@ -10,6 +12,7 @@ class State(Enum):
     SEND_PARAMS = 5
     TEST_OVERRIDE = 6
     EXIT = 7
+
 
 class OverrideDeviceID(Enum):
     TEST_X_RW       = 0x31
@@ -23,6 +26,14 @@ class OverrideDeviceID(Enum):
     EFUSE_ADCS      = auto()
     EFUSE_PAYLOAD   = auto()
     TEST_EXIT       = auto()
+
+
+class DeviceMsg(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ('device', c_uint8)
+        ('magnitude', c_float)
+    ]
 
 
 # Handles the initial user request for the gorund station task to perform
@@ -59,42 +70,73 @@ def taskRequest():
     return nextState
 
 
-def getOverride():
+def getOverride() -> DeviceMsg:
     device = input("What device would you like to test?\n"
-                   "X RW\n"
-                   "Y RW\n"
-                   "Z RW\n"
-                   "X MAG\n"
-                   "Y MAG\n"
-                   "Z MAG\n"
+                   "xRW <rpm>\n"
+                   "yRW <rpm>\n"
+                   "zRW <rpm>\n"
+                   "xMAG <rpm>\n"
+                   "yMAG <rpm>\n"
+                   "zMAG <rpm>\n"
                    "PAYLOAD\n"
                    "CAMERA\n"
-                   "EFUSE ADCS\n"
-                   "EFUSE PAYLOAD\n"
-                   "EXIT TESTING\n")
+                   "EFUSE_ADCS\n"
+                   "EFUSE_PAYLOAD\n"
+                   "EXIT_TESTING\n").split(' ')
     
-    if (device == "X RW"):
-        return OverrideDeviceID.TEST_X_RW
-    elif (device == "Y RW"):
-        return OverrideDeviceID.TEST_Y_RW
-    elif (device == "z RW"):
-        return OverrideDeviceID.TEST_Z_RW
-    elif (device == "X MAG"):
-        return OverrideDeviceID.TEST_X_MAG
-    elif (device == "Y MAG"):
-        return OverrideDeviceID.TEST_Y_MAG    
-    elif (device == "Z MAG"):
-        return OverrideDeviceID.TEST_Z_MAG
-    elif (device == "PAYLOAD"):
-        return OverrideDeviceID.TEST_PAYLOAD
-    elif (device == "CAMERA"):
-        return OverrideDeviceID.TEST_CAMERA
-    elif (device == "EFUSE ADCS"):
-        return OverrideDeviceID.EFUSE_ADCS
-    elif (device == "EFUSE PAYLOAD"):
-        return OverrideDeviceID.EFUSE_PAYLOAD
-    elif (device == "EXIT TESTING"):
-        return OverrideDeviceID.TEST_EXIT
+    msg = DeviceMsg()
+
+    if (len(msg) > 1 and validFloat(msg[1])):
+        msg.magnitude = ctypes.c_float(float(msg[1]))
+
+        if (device[0] == "xRW"):
+            msg.device = OverrideDeviceID.TEST_X_RW
+            return msg
+        elif (device[0] == "yRW"):
+            msg.device = OverrideDeviceID.TEST_Y_RW
+            return msg
+        elif (device[0] == "zRW"):
+            msg.device = OverrideDeviceID.TEST_Z_RW
+            return msg
+        elif (device[0] == "xMAG"):
+            msg.device = OverrideDeviceID.TEST_X_MAG
+            return msg
+        elif (device[0] == "yMAG"):
+            msg.device = OverrideDeviceID.TEST_Y_MAG
+            return msg 
+        elif (device[0] == "zMAG"):
+            msg.device = OverrideDeviceID.TEST_Z_MAG
+            return msg
+        else:
+            print("Invalid input")
+            msg.device = 255
+            return msg
+    
+    elif (device[0] == "PAYLOAD"):
+        msg.device = OverrideDeviceID.TEST_PAYLOAD
+        return msg
+    elif (device[0] == "CAMERA"):
+        msg.device = OverrideDeviceID.TEST_CAMERA
+        return msg
+    elif (device[0] == "EFUSE_ADCS"):
+        msg.device = OverrideDeviceID.EFUSE_ADCS
+        return msg
+    elif (device[0] == "EFUSE_PAYLOAD"):
+        msg.device = OverrideDeviceID.EFUSE_PAYLOAD
+        return msg
+    elif (device[0] == "EXIT_TESTING"):
+        msg.device = OverrideDeviceID.TEST_EXIT
+        return msg
     else:
         print("Invalid input")
-        return -1
+        msg.device = 255
+        return msg
+    
+
+def validFloat(value: str) -> bool:
+    try:
+        convertedValue = ctypes.c_float(float(value))
+    except ValueError:
+        print(f"Error: '{value}' cannot be parsed into a float.")
+        return False
+    return True

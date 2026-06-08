@@ -138,7 +138,7 @@ bool handleWodDownlink(WiFiClient* client) {
       }
       
       // SEND THE WOD CHUNK TO GROUND STATION
-      std::vector<char> rawData(msg.payload, msg.payload + msg.length);
+      std::vector<char> rawData(msg.payload + 2, msg.payload + msg.length);   // +2 to get rid of index
       std::vector<char> txPacket = ax25encode(rawData, true);
       if (!sendAx25Packet(client, txPacket)) {
         return false;
@@ -353,22 +353,31 @@ bool handleTestOverride(WiFiClient* client) {
   while(true) {
     std::vector<char> ax25packet = recieveAx25Packet(client);
     RxAx25 receivedOverride(ax25packet);
-    uint8_t testDevice = receivedOverride.getData()[0];
+    TEST_OVERRIDE_MSG_t testMsg;
+
+    auto data = receivedOverride.getData();
+    if (data.size() == sizeof(TEST_OVERRIDE_MSG_t)) {
+        memcpy(&testMsg, data.data(), sizeof(testMsg));
+    }
+    else {
+      Serial.println("Message from ground station incorrect size");
+      return false;
+    }
 
     if (receivedOverride.fcsCompare()) {
       Serial.println("Test Override packet recieved: FCS is okay");
     }
     else {
       Serial.println("Test Override packet recieved: FCS is shit, exiting test mode");
-      testDevice = TEST_EXIT;
+      testMsg.device = TEST_EXIT;
     }
 
-    Serial.printf("Sending component override %d request to OBC\r\n", testDevice);
+    Serial.printf("Sending component override %d request to OBC\r\n", testMsg);
     UART_msg_t msg;
     msg.sof        = UART_SOF;
     msg.id         = TEST_OVERRIDE_ID;
     msg.length     = 1;
-    msg.payload[0] = testDevice;
+    memcpy(msg.payload, &data, sizeof(TEST_OVERRIDE_MSG_t));
     UART_transmit(&Serial2, &msg);
 
     int ackCounter = 0;
@@ -381,7 +390,7 @@ bool handleTestOverride(WiFiClient* client) {
       ackCounter++;
     }
 
-    if (testDevice == TEST_EXIT) {
+    if (testMsg.device == TEST_EXIT) {
       break;
     }
   }

@@ -61,6 +61,11 @@ typedef enum{
   TEST_EXIT
 }TestOverideCommands;
 
+typedef struct __attribute__((packed)) {
+  uint8_t device;
+  float magnitude;
+}TEST_OVERRIDE_MSG_t;
+
 // Serial2 is reserved for OBC-COMMS UART connection
 extern HardwareSerial Serial2;
 
