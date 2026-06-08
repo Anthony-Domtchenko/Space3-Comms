@@ -75,7 +75,7 @@ while(1):
             
             device = getOverride()
             # stay in Test mode until EXIT is called
-            while(device != 38):
+            while(device != OverrideDeviceID.TEST_EXIT):
                 if (device != -1):
                     # valid device
                     client.testOverride(device)

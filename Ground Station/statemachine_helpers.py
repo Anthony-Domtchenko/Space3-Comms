@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 # States for the ground_station state machine
 class State(Enum):
@@ -10,6 +10,19 @@ class State(Enum):
     SEND_PARAMS = 5
     TEST_OVERRIDE = 6
     EXIT = 7
+
+class OverrideDeviceID(Enum):
+    TEST_X_RW       = 0x31
+    TEST_Y_RW       = auto()
+    TEST_Z_RW       = auto()
+    TEST_X_MAG      = auto()
+    TEST_Y_MAG      = auto()
+    TEST_Z_MAG      = auto()
+    TEST_PAYLOAD    = auto()
+    TEST_CAMERA     = auto()
+    EFUSE_ADCS      = auto()
+    EFUSE_PAYLOAD   = auto()
+    TEST_EXIT       = auto()
 
 
 # Handles the initial user request for the gorund station task to perform
@@ -56,26 +69,32 @@ def getOverride():
                    "Z MAG\n"
                    "PAYLOAD\n"
                    "CAMERA\n"
+                   "EFUSE ADCS\n"
+                   "EFUSE PAYLOAD\n"
                    "EXIT TESTING\n")
     
     if (device == "X RW"):
-        return 30
+        return OverrideDeviceID.TEST_X_RW
     elif (device == "Y RW"):
-        return 31
+        return OverrideDeviceID.TEST_Y_RW
     elif (device == "z RW"):
-        return 32
+        return OverrideDeviceID.TEST_Z_RW
     elif (device == "X MAG"):
-        return 33
+        return OverrideDeviceID.TEST_X_MAG
     elif (device == "Y MAG"):
-        return 34      
+        return OverrideDeviceID.TEST_Y_MAG    
     elif (device == "Z MAG"):
-        return 35
+        return OverrideDeviceID.TEST_Z_MAG
     elif (device == "PAYLOAD"):
-        return 36
+        return OverrideDeviceID.TEST_PAYLOAD
     elif (device == "CAMERA"):
-        return 37
+        return OverrideDeviceID.TEST_CAMERA
+    elif (device == "EFUSE ADCS"):
+        return OverrideDeviceID.EFUSE_ADCS
+    elif (device == "EFUSE PAYLOAD"):
+        return OverrideDeviceID.EFUSE_PAYLOAD
     elif (device == "EXIT TESTING"):
-        return 38
+        return OverrideDeviceID.TEST_EXIT
     else:
         print("Invalid input")
         return -1

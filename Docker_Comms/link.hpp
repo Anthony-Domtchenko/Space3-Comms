@@ -30,7 +30,7 @@
 #define SEND_PARAMS_REQUEST_ID  0x13
 #define SEND_PARAMS_CHUNK_ID    0x69
 
-#define TEST_OVERRIDE_ID        0x11  // Check and update this
+#define TEST_OVERRIDE_ID        0x30
 
 #define UART_WAIT_TIMEOUT_US  2000000
 #define ACK_WAIT_TIMEOUT_US   20000
@@ -48,7 +48,7 @@ typedef enum{
 }LinkTask;
 
 typedef enum{
-  TEST_X_RW = 30,
+  TEST_X_RW = 0x31,
   TEST_Y_RW,
   TEST_Z_RW,
   TEST_X_MAG,
@@ -56,6 +56,8 @@ typedef enum{
   TEST_Z_MAG,
   TEST_PAYLOAD,
   TEST_CAMERA,
+  EFUSE_ADCS,
+  EFUSE_PAYLOAD,
   TEST_EXIT
 }TestOverideCommands;
 

@@ -64,7 +64,7 @@ def make_packets(data: bytes) -> list:
     """Split binary data into packet payloads, each prefixed with a 2-byte little-endian index."""
     packets = []
     for i in range(0, len(data), MAX_DATA_PER_PACKET):
-        index   = struct.pack('>H', len(packets))
+        index   = struct.pack('<H', len(packets))
         payload = data[i : i + MAX_DATA_PER_PACKET]
         packets.append(index + payload)
     return packets

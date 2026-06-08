@@ -336,6 +336,20 @@ bool uplinkFileInfo(WiFiClient* client) {
 
 
 bool handleTestOverride(WiFiClient* client) {
+  
+  sendOBCRequest(TEST_OVERRIDE_ID);
+
+  // wait for ack
+  int ackCounter = 0;
+  while(!getAck()) {
+    if (ackCounter == MAX_ACK_RETRIES) {
+      Serial.println("Failed to recieve acknowledgement");
+      return false;
+    }
+    sendOBCRequest(TEST_OVERRIDE_ID);
+    ackCounter++;
+  }
+
   while(true) {
     std::vector<char> ax25packet = recieveAx25Packet(client);
     RxAx25 receivedOverride(ax25packet);
