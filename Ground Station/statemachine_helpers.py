@@ -31,8 +31,8 @@ class OverrideDeviceID(Enum):
 class DeviceMsg(Structure):
     _pack_ = 1
     _fields_ = [
-        ('device', c_uint8)
-        ('magnitude', c_float)
+        ('device', c_uint8),
+        ('magnitude', c_float),
     ]
 
 
