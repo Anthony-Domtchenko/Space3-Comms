@@ -11,10 +11,10 @@ import numpy as np
 
 # Results file binary schema (must match serialiseResults() in obcMessageHandler.cpp)
 NUM_SERVOS          = 6
-CAM_W, CAM_H        = 640, 480
-BYTES_PER_HISTOGRAM = CAM_W * CAM_H // 8  # 38400
+CAM_W, CAM_H        = 360, 320
+BYTES_PER_HISTOGRAM = CAM_W * CAM_H // 8  # 14400
 RESULT_TIMESTEPS    = 150
-HIST_ROWS, HIST_BYTES = 150, 38_400
+HIST_ROWS, HIST_BYTES = 150, 14400
 
 
 # Function breaks up a file of buffered data and returns a list of byte arrays where each entry is a RAW ax25 packet in received order
@@ -191,11 +191,10 @@ def plotWodData(csv_path, save_folder):
 def processSciData(foldername, filename):
 
     os.makedirs(foldername, exist_ok=True)
-    save_path = os.path.join(foldername, filename)
 
     rawByteStream = b''
 
-    with open('rawData.txt', "rb") as f_in, open(save_path, 'w', newline='', encoding='utf-8') as f_out:
+    with open('rawData.txt', "rb") as f_in:
         # Split raw data into AX25 packets by flag delimeters
         content = f_in.read()
         delimiter = b'\x7E'
@@ -242,7 +241,7 @@ def decode_results(stream: bytes, output_csv_path: str):
       150 x 6 floats  — servo angles (rows 0-149)
       150 x 3 floats  — camera position (rows 150-299)
       150 x 3 floats  — camera attitude (rows 300-449)
-      150 x 38400 bytes — event histogram as packed bits (rows 450-599, hex strings)
+      150 x 14400 bytes — event histogram as packed bits (rows 450-599, hex strings)
     """
     offset = 0
     rows = []
@@ -283,7 +282,7 @@ def decode_results(stream: bytes, output_csv_path: str):
 
 def save_histograms(csv_path, save_folder):
 
-    IMG_H, IMG_W = 480, 640
+    IMG_H, IMG_W = 320, 360
     BLOCK_ROWS = 150
 
     servo_angles = []   # (150, 6) per experiment

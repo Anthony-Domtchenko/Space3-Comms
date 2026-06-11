@@ -177,9 +177,9 @@ bool handleSciDownlink(WiFiClient* client) {
       return false;
     } 
 
-    // RECEIVE THE WOD CHUNK FROM OBC
+    // RECEIVE THE SCI CHUNK FROM OBC
     UART_msg_t msg;
-    if (UART_receive(&Serial2, &msg, DEFAULT_UART_TIMEOUT_US))
+    if (UART_receive(&Serial2, &msg, SCI_UART_TIMEOUT_US))
     {
       if (msg.length < 1)
       {
@@ -195,16 +195,22 @@ bool handleSciDownlink(WiFiClient* client) {
         Serial.println("Warning: Bad SCI chunk ID received from OBC");
         return false;
       }
+
+      uint16_t index;
+      memcpy(&index, &msg.payload[0], sizeof(uint16_t));
       
       // SEND THE WOD CHUNK TO GROUND STATION
       std::vector<char> rawData(msg.payload, msg.payload + msg.length);
       std::vector<char> txPacket = ax25encode(rawData, false);
       if (!sendAx25Packet(client, txPacket)) {
+        Serial.println("TCP send fail");
         return false;
       }
+      Serial.printf("Sent packet with index: %d\r\n", index);
     }
     else {
-      return false;
+      Serial.println("No UART receieved");
+      continue;
     }
 
     sendObcAck();                   // Send acknowledgement to OBC
@@ -428,6 +434,7 @@ void sendObcAck(void) {
   msg.length = 1;
   msg.payload[0] = COMMS_ACK_ID;
   UART_transmit(&Serial2, &msg);
+  Serial.println("Sending Ack!");
 }
 
 bool getSendFileInfo(WiFiClient* client, bool wodTrue) {
@@ -448,8 +455,12 @@ bool getSendFileInfo(WiFiClient* client, bool wodTrue) {
     
     // SEND THE FILE INFO TO GROUND STATION
     int fileID = msg.payload[0];
-    int chunkSize = (msg.payload[1] << 24) | (msg.payload[2] << 16) | (msg.payload[3] << 8) | msg.payload[4];
-    int numChunks = (msg.payload[5] << 24) | (msg.payload[6] << 16) | (msg.payload[7] << 8) | msg.payload[8];
+    //int chunkSize = (msg.payload[1] << 24) | (msg.payload[2] << 16) | (msg.payload[3] << 8) | msg.payload[4];
+    int chunkSize;
+    memcpy(&chunkSize, &msg.payload[1], sizeof(int));
+    //int numChunks = (msg.payload[5] << 24) | (msg.payload[6] << 16) | (msg.payload[7] << 8) | msg.payload[8];
+    int numChunks;
+    memcpy(&numChunks, &msg.payload[5], sizeof(int));
     Serial.printf("Transmitting File Info with File ID: %d Chunk Size: %d No. Chunks: %d\r\n", fileID, chunkSize, numChunks);
     std::vector<char> rawData(msg.payload, msg.payload + msg.length);
     std::vector<char> txPacket = ax25encode(rawData, wodTrue);

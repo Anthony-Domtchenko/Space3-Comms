@@ -65,6 +65,13 @@ class BeaconPacket(Structure):
         ('y_mag_field_filt', c_float),
         ('z_mag_field_filt', c_float),
 
+        ('sun_sense_1', c_float),
+        ('sun_sense_2', c_float),
+        ('sun_sense_3', c_float),
+        ('sun_sense_4', c_float),
+        ('sun_sense_5', c_float),
+        ('sun_sense_6', c_float),
+
         ('detumble_scale', c_float),
 
         # Subsystem Faults
@@ -73,7 +80,23 @@ class BeaconPacket(Structure):
         ('ADCS_Faults', c_uint16),
         ('Payload_Faults', c_uint16),
         ('Comms_Faults', c_uint16),
+        ('Raw_Satellite_State', c_uint8),
     ]
+
+    @property
+    def Satellite_State(self):
+        if (self.Raw_Satellite_State == 0):
+            return "INIT"
+        elif (self.Raw_Satellite_State == 1):
+            return "DETUMBLE"
+        elif (self.Raw_Satellite_State == 2):
+            return "IDLE"
+        elif (self.Raw_Satellite_State == 3):
+            return "EXPERIMENT"
+        elif (self.Raw_Satellite_State == 4):
+            return "LINK"
+        elif (self.Raw_Satellite_State == 5):
+            return "DEBUG"
 
     @property
     def utc_time(self):
@@ -166,7 +189,7 @@ class BeaconPacket(Structure):
     @property
     def z_rw_speed(self):
         return self.raw_z_rw_speed / (2.0 * math.pi)    # converts rad/s to rps
-    
+
     @property
     def mppt1_voltage(self):
         return self.raw_mppt1_voltage * 0.001

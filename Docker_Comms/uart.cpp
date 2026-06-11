@@ -50,6 +50,7 @@ bool UART_receive(Stream *port, UART_msg_t* msg, uint32_t timeout_us)
 
                 if (msg->length == 0 || msg->length > RX_BUFFER_BYTES)
                 {
+                    Serial.println("UART ERROR: Length incorrect");
                     return false;
                 }
 
@@ -75,6 +76,7 @@ bool UART_receive(Stream *port, UART_msg_t* msg, uint32_t timeout_us)
 
                 if (crc_idx == RX_CRC_BYTES)
                 {
+                    Serial.println("Checking CRC");
                     return UART_checkCRC(msg);
                 }
                 break;

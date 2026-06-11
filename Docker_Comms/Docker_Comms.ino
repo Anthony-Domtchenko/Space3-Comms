@@ -61,7 +61,7 @@ void setup() {
 void loop() {
   // SATELLITE BEACON
   if (handleOBCBeacon()) {
-    Serial.println("OBC Beacon Successful");
+    //Serial.println("OBC Beacon Successful");
   }
 
   // SATELLITE LINK

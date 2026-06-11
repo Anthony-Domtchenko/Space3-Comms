@@ -91,6 +91,13 @@ TELEMETRY_GROUPS = {
         "y_mag_field_filt",
         "z_mag_field_filt",
 
+        "sun_sense_1",
+        "sun_sense_2",
+        "sun_sense_3",
+        "sun_sense_4",
+        "sun_sense_5",
+        "sun_sense_6",
+
         "detumble_scale"
     ],
 
@@ -99,7 +106,8 @@ TELEMETRY_GROUPS = {
         "OBC_Faults",
         "ADCS_Faults",
         "Payload_Faults",
-        "Comms_Faults"
+        "Comms_Faults",
+        "Satellite_State"
     ]
 }
 
@@ -530,6 +538,9 @@ class TelemetryGUI:
 
             elif "Faults" in field_name:
                 return f"0x{value:04X}"
+            
+            elif "sun_sense" in field_name:
+                return f"{value:.3f} V"
 
             elif field_name in [
                 "eFuse_states",

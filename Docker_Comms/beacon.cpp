@@ -20,7 +20,7 @@ void initLoRa(void) {
 bool handleOBCBeacon(void) {
   UART_msg_t msg;
   if (UART_receive(&Serial2, &msg, DEFAULT_UART_TIMEOUT_US)) {
-    Serial.println("Recieved beacon message from OBC");
+    //Serial.println("Recieved beacon message from OBC");
 
     if (!checkMessage(&msg)) {
       return false;
@@ -45,7 +45,7 @@ bool checkMessage(UART_msg_t* msg) {
     return false;
   }
   if (msg->length != sizeof(COMMS_BeaconData_t)) {
-    Serial.println("Beacon Length Invalid");
+    //Serial.println("Beacon Length Invalid");
     return false;
   }
   return true;
@@ -67,7 +67,7 @@ void sendLoRa(std::vector<char>& packet) {
 
 void OnTxDone(void) {
   Radio.Sleep();
-  Serial.println("LoRa Tx Done......");
+  //Serial.println("LoRa Tx Done......");
 	loraIdle = true;
 }
 
@@ -75,7 +75,7 @@ void OnTxDone(void) {
 
 void OnTxTimeout(void) {
   Radio.Sleep();
-  Serial.println("LoRa Tx Timeout......");
+  //Serial.println("LoRa Tx Timeout......");
 	loraIdle = true;
 }
 

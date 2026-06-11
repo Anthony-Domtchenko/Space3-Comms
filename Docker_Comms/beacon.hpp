@@ -91,6 +91,8 @@ typedef struct __attribute__((packed)) {
     float    x_mag_field_filt;
     float    y_mag_field_filt;
     float    z_mag_field_filt;
+
+    float    sun_sense[6];
     
     float    detumble_scale;
     
@@ -99,6 +101,7 @@ typedef struct __attribute__((packed)) {
     uint16_t ADCS_Faults;
     uint16_t Payload_Faults;
     uint16_t Comms_Faults;
+    uint8_t  satellite_state;
 }COMMS_BeaconData_t;
 
 typedef enum {

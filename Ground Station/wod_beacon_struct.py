@@ -65,6 +65,13 @@ class BeaconPacket(Structure):
         ('y_mag_field_filt', c_float),
         ('z_mag_field_filt', c_float),
 
+        ('sun_sense_1', c_float),
+        ('sun_sense_2', c_float),
+        ('sun_sense_3', c_float),
+        ('sun_sense_4', c_float),
+        ('sun_sense_5', c_float),
+        ('sun_sense_6', c_float),
+
         ('detumble_scale', c_float),
 
         # Subsystem Faults
@@ -73,6 +80,7 @@ class BeaconPacket(Structure):
         ('ADCS_Faults', c_uint16),
         ('Payload_Faults', c_uint16),
         ('Comms_Faults', c_uint16),
+        ('Satellite_State', c_uint8),
     ]
 
     @property
