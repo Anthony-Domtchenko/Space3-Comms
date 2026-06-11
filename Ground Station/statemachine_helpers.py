@@ -85,27 +85,28 @@ def getOverride() -> DeviceMsg:
                    "EXIT_TESTING\n").split(' ')
     
     msg = DeviceMsg()
+    msg.magnitude = ctypes.c_float(float(0.0))
 
-    if (len(msg) > 1 and validFloat(msg[1])):
+    if (len(device) > 1 and validFloat(device[1])):
         msg.magnitude = ctypes.c_float(float(msg[1]))
 
         if (device[0] == "xRW"):
-            msg.device = OverrideDeviceID.TEST_X_RW
+            msg.device = OverrideDeviceID.TEST_X_RW.value
             return msg
         elif (device[0] == "yRW"):
-            msg.device = OverrideDeviceID.TEST_Y_RW
+            msg.device = OverrideDeviceID.TEST_Y_RW.value
             return msg
         elif (device[0] == "zRW"):
-            msg.device = OverrideDeviceID.TEST_Z_RW
+            msg.device = OverrideDeviceID.TEST_Z_RW.value
             return msg
         elif (device[0] == "xMAG"):
-            msg.device = OverrideDeviceID.TEST_X_MAG
+            msg.device = OverrideDeviceID.TEST_X_MAG.value
             return msg
         elif (device[0] == "yMAG"):
-            msg.device = OverrideDeviceID.TEST_Y_MAG
+            msg.device = OverrideDeviceID.TEST_Y_MAG.value
             return msg 
         elif (device[0] == "zMAG"):
-            msg.device = OverrideDeviceID.TEST_Z_MAG
+            msg.device = OverrideDeviceID.TEST_Z_MAG.value
             return msg
         else:
             print("Invalid input")
@@ -113,19 +114,19 @@ def getOverride() -> DeviceMsg:
             return msg
     
     elif (device[0] == "PAYLOAD"):
-        msg.device = OverrideDeviceID.TEST_PAYLOAD
+        msg.device = OverrideDeviceID.TEST_PAYLOAD.value
         return msg
     elif (device[0] == "CAMERA"):
-        msg.device = OverrideDeviceID.TEST_CAMERA
+        msg.device = OverrideDeviceID.TEST_CAMERA.value
         return msg
     elif (device[0] == "EFUSE_ADCS"):
-        msg.device = OverrideDeviceID.EFUSE_ADCS
+        msg.device = OverrideDeviceID.EFUSE_ADCS.value
         return msg
     elif (device[0] == "EFUSE_PAYLOAD"):
-        msg.device = OverrideDeviceID.EFUSE_PAYLOAD
+        msg.device = OverrideDeviceID.EFUSE_PAYLOAD.value
         return msg
     elif (device[0] == "EXIT_TESTING"):
-        msg.device = OverrideDeviceID.TEST_EXIT
+        msg.device = OverrideDeviceID.TEST_EXIT.value
         return msg
     else:
         print("Invalid input")

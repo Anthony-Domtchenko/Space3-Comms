@@ -75,11 +75,11 @@ while(1):
             
             msg = getOverride()
             # stay in Test mode until EXIT is called
-            while(msg.device != OverrideDeviceID.TEST_EXIT):
+            while(msg.device != OverrideDeviceID.TEST_EXIT.value):
                 if (msg.device != 255):
                     # valid device
                     client.sendTestOverride(msg)
-                device = getOverride()
+                msg = getOverride()
             
             # Exit test mode
             client.sendTestOverride(msg)

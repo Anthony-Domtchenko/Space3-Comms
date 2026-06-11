@@ -121,7 +121,7 @@ class satClient:
     
     def sendTestOverride(self, msg:DeviceMsg):
         # SEND OVERRIDE REQUEST PACKET
-        txMsg = bytearray(msg)
+        txMsg = bytes(msg)
         msg = ax25encode(txMsg, msgType='science')
         self.sock.sendall(msg)
 

@@ -75,6 +75,9 @@ LinkTask getTask(WiFiClient* client) {
     case LINK_SEND_PARAMS:
       return LINK_SEND_PARAMS;
       break;
+    case TEST_OVERRIDE:
+      return TEST_OVERRIDE;
+      break;
     default:
       Serial.println("Client Request was not valid");
       return LINK_INVALID;
@@ -345,23 +348,12 @@ bool handleTestOverride(WiFiClient* client) {
   
   sendOBCRequest(TEST_OVERRIDE_ID);
 
-  // wait for ack
-  int ackCounter = 0;
-  while(!getAck()) {
-    if (ackCounter == MAX_ACK_RETRIES) {
-      Serial.println("Failed to recieve acknowledgement");
-      return false;
-    }
-    sendOBCRequest(TEST_OVERRIDE_ID);
-    ackCounter++;
-  }
-
   while(true) {
     std::vector<char> ax25packet = recieveAx25Packet(client);
     RxAx25 receivedOverride(ax25packet);
     TEST_OVERRIDE_MSG_t testMsg;
 
-    auto data = receivedOverride.getData();
+    std::vector<char> data = receivedOverride.getData();
     if (data.size() == sizeof(TEST_OVERRIDE_MSG_t)) {
         memcpy(&testMsg, data.data(), sizeof(testMsg));
     }
@@ -378,26 +370,17 @@ bool handleTestOverride(WiFiClient* client) {
       testMsg.device = TEST_EXIT;
     }
 
-    Serial.printf("Sending component override %d request to OBC\r\n", testMsg);
+    Serial.printf("device ID: %d,   magnitude: %d\r\n", testMsg.device, testMsg.magnitude);
+    
     UART_msg_t msg;
     msg.sof        = UART_SOF;
-    msg.id         = TEST_OVERRIDE_ID;
-    msg.length     = 1;
-    memcpy(msg.payload, &data, sizeof(TEST_OVERRIDE_MSG_t));
+    msg.id         = testMsg.device;
+    msg.length     = sizeof(float);
+    memcpy(msg.payload, &testMsg.magnitude, sizeof(float));
     UART_transmit(&Serial2, &msg);
 
-    int ackCounter = 0;
-    while(!getAck()) {
-      if (ackCounter == MAX_ACK_RETRIES) {
-        Serial.println("Failed to recieve acknowledgement");
-        return false;
-      }
-      UART_transmit(&Serial2, &msg);
-      ackCounter++;
-    }
-
     if (testMsg.device == TEST_EXIT) {
-      break;
+      return true;
     }
   }
 }

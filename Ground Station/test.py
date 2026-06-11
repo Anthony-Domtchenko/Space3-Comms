@@ -9,7 +9,11 @@ SCI_FOLDER = 'Science Data'
 HIST_FOLDER = 'Histograms'
 csv_path = 'results.csv'
 
-serialisedFile = load_settings(EXPERIMENT_SETTINGS_PATH)
-packetsToSend = make_packets(serialisedFile)
+a = "ab_c".split()
+b = "ab bc".split()
 
-print(packetsToSend[0].hex())
+print(len(a))
+print(len(b[0]))
+
+print(a)
+print(b)
